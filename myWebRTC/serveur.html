@@ -1,0 +1,17 @@
+<html>
+	<head>
+		<link rel="stylesheet" href="css/style.css">
+	</head>
+	
+	<video id="video"></video>
+	<!--<button id="startbutton">Take photo</button>-->
+	<!--<canvas id="canvas"></canvas>-->
+	<!--<img src="images/photo.png" id="photo" alt="photo">-->
+
+	<!-- webRTC script for video stream-->
+	<script type="text/javascript" src="js/video.js"></script>
+	<script type="text/javascript">alert("before waiting");</script>
+		<script>var webRTC = require('js/webrtc.io').listen(8001);</script>
+	<script type="text/javascript">alert("after connection with client");</script>
+
+</html>
