@@ -32,7 +32,6 @@ function WebRTC() {
      * 	Private Attributes
      */
     var moz = !!navigator.mozGetUserMedia;
-    var that = this;
     var connection = false;
     var roomId = false; // here is the room-ID stored
     var myStream = false; // my media-stream
@@ -44,9 +43,17 @@ function WebRTC() {
     var peerConstraints = {optional: [{RtpDataChannels: true}]};// set DTLS encrpytion
     var otherSDP = false;
     var othersCandidates = []; // other guy's icecandidates
-    var PeerConnection = window.mozRTCPeerConnection || window.webkitRTCPeerConnection;
-    var SessionDescription = window.mozRTCSessionDescription || window.webkitRTCSessionDescription;
-    var IceCandidate = window.mozRTCIceCandidate || window.webkitRTCIceCandidate;
+    var PeerConnection = window.RTCPeerConnection
+            || window.webkitRTCPeerConnection
+            || window.mozRTCPeerConnection;
+
+    var SessionDescription = window.RTCSessionDescription
+            || window.webkitRTCSessionDescription
+            || window.mozRTCSessionDescription;
+
+    var IceCandidate = window.RTCIceCandidate
+            || window.webkitRTCIceCandidate
+            || window.mozRTCIceCandidate;
     // via this element we will send events to the view
     var socketEvent = document.createEvent('Event');
     socketEvent.initEvent('socketEvent', true, true);
@@ -100,7 +107,15 @@ function WebRTC() {
 
     // create an session description object
     var createRTCSessionDescription = function(sdp) {
-        var newSdp = new SessionDescription(sdp);
+        console.log("sdp :" + sdp);
+        if (typeof (SessionDescription) == 'function') {
+            var newSdp = new SessionDescription(sdp);
+            console.log('SessionDescription is a function');
+        }
+        else
+            var newSdp = new RTCSessionDescription(sdp);
+
+        console.log("in createRTCSessionDescription newSdp " + newSdp);
         return newSdp;
     };
     // set or save the icecandidates
@@ -136,11 +151,22 @@ function WebRTC() {
         peerConnection = new PeerConnection(iceServers, peerConstraints);
 
         try {
-            sendChannel = peerConnection.createDataChannel("sendDataChannel", {reliable: true});
+            sendChannel = peerConnection.createDataChannel("sendDataChannel", {reliable: false});
             console.log('Created send data channel');
         } catch (err) {
             console.log('dataChannel creation failed ' + err);
         }
+
+        peerConnection.addStream(myStream);
+
+        // other side added stream to peerconnection
+        peerConnection.onaddstream = function(e) {
+            console.log('other guys stream added');
+            otherStream = e.stream;
+            // fire event
+            socketEvent.eventType = 'streamAdded';
+            document.dispatchEvent(socketEvent);
+        };
 
         // we receive our icecandidates and send them to the other guy
         peerConnection.onicecandidate = function(icecandidate) {
@@ -193,20 +219,35 @@ function WebRTC() {
         peerConnection = new PeerConnection(iceServers, peerConstraints);
 
         // set remote-description
-        peerConnection.setRemoteDescription(createRTCSessionDescription(otherSDP));
+        try {
+            peerConnection.setRemoteDescription(createRTCSessionDescription(otherSDP));
+        } catch (err) {
+            console.log("failed in setting remote description " + err);
+            return;
+        }
 
         // we receive our icecandidates and send them to the other guy
         try {
             peerConnection.ondatachannel = gotReceiveChannel;
-            try {
-                sendChannel = peerConnection.createDataChannel("sendDataChannel", {reliable: true});
-                console.log('Created send data channel');
-            } catch (err) {
-                console.log('dataChannel creation failed ' + err);
-            }
+            console.log('join dataChannel');
         } catch (err) {
             console.log('dataChannel joingning ' + err);
         }
+        try {
+            sendChannel = peerConnection.createDataChannel("sendDataChannel", {reliable: false});
+            console.log('Created send data channel');
+        } catch (err) {
+            console.log('dataChannel creation failed ' + err);
+        }
+        peerConnection.addStream(myStream);
+
+        peerConnection.onaddstream = function(e) {
+            console.log('stream added');
+            otherStream = e.stream;
+            // fire event
+            socketEvent.eventType = 'streamAdded';
+            document.dispatchEvent(socketEvent);
+        };
 
 
         peerConnection.onicecandidate = function(icecandidate) {
@@ -325,7 +366,11 @@ function WebRTC() {
                     // other guy wants to join our room
                 case 'offer':
                     console.log('offer received, answer will be created');
-                    otherSDP = data.payload;
+                    try {
+                        otherSDP = data.payload;
+                    } catch (err) {
+                        console.log("data failed after offer received :" + err);
+                    }
                     createAnswer();
                     break;
                     // we receive the answer
@@ -364,22 +409,49 @@ function WebRTC() {
         roomId = id;
         createOffer();
     };
+
+    this.getMedia = function(param, success) {
+        // param default 
+        if (!param) {
+            param = {audio: false, video: true};
+        }
+
+        navigator.getMedia = (navigator.getUserMedia ||
+                navigator.webkitGetUserMedia || // les fonctions préfixés par webkit sont utilisées par google chrome
+                navigator.mozGetUserMedia ||
+                navigator.msGetUserMedia);
+
+
+
+        navigator.getMedia(param, function(stream) {
+
+            myStream = stream;
+            success(myStream);
+
+        }, function(err) {
+            console.log("getMedia failed " + err);
+        });
+    };
+
     // get the other guys media stream
     this.getOtherStream = function() {
         return otherStream;
     };
 
+    // methode permettant d'envoyer des datas
     this.sendData = function() {
         var data = document.getElementById("dataChannelSend").value;
         sendChannel.send(data);
         console.log('Sent data: ' + data);
-    }
+    };
 
+    //methode permettant de recevoir des data
     function receiveData(event) {
         console.log('Received message: ' + event.data);
         document.getElementById("dataChannelReceive").value = event.data;
     }
 
+    // fonction permettant de recevoir le channel de data
     function gotReceiveChannel(event) {
         console.log('Receive Channel Callback');
         receiveChannel = event.channel;

@@ -35,6 +35,10 @@ and open the template in the editor.
                 <textarea id="dataChannelReceive" disabled></textarea>
             </div>
         </div>
+        <div class="video-wrapper">
+            <video id="otherVideo"></video>
+            <video id="ownVideo" ></video>
+        </div>
         <script type="text/javascript" src="client.js"></script>
         <script>
             var localStream;
@@ -47,10 +51,13 @@ and open the template in the editor.
             var joinChannelButton = document.getElementById("joinChannel");
             var sendButton = document.getElementById("sendButton");
             var closeButton = document.getElementById("closeButton");
-//            creatChannel.disabled = false;
-//            joinChannel.disabled = false;
-//            sendButton.disabled = true;
-//            closeButton.disabled = true;
+
+            var ownVideo = document.getElementById('ownVideo');
+            var otherVideo = document.getElementById('otherVideo');
+            //            creatChannel.disabled = false;
+            //            joinChannel.disabled = false;
+            //            sendButton.disabled = true;
+            //            closeButton.disabled = true;
 
             /*
              * creation de l'objet webRTC
@@ -59,21 +66,51 @@ and open the template in the editor.
             /*
              * connexion au serveur
              */
-            webRTC.connectToSocket('ws://localhost:63949');
+            webRTC.connectToSocket('ws://localhost:6969');
+
+            document.addEventListener('socketEvent', function(socketEvent) {
+                switch (socketEvent.eventType) {
+                    case 'streamAdded':
+                        // we receive the video-stream of our partner
+                        // and play it on the video-element
+                        otherVideo.src = URL.createObjectURL(webRTC.getOtherStream());
+                        otherVideo.play();
+                        break;
+                }
+            });
 
             creatChannelButton.addEventListener('click', function(e) {
                 e.preventDefault();
-                console.log("creatRoom");
-                webRTC.createRoom();
+                // private methode
+                var success = function(myStream) {
+                    ownVideo.src = URL.createObjectURL(myStream);
+                    ownVideo.play();
+                    // create a room
+                    console.log("creatRoom");
+                    webRTC.createRoom();
+                };
+                //var param = {audio:true,video:true};
+                webRTC.getMedia(null, success);
             });
-            
-            joinChannelButton.addEventListener('click',function(e){
+
+            joinChannelButton.addEventListener('click', function(e) {
                 e.preventDefault();
                 console.log("join room");
-                webRTC.joinRoom("bigueRobAir");
+                //webRTC.joinRoom("bigueRobAir");
+                // get media-stream
+                var success = function(myStream) {
+
+                    ownVideo.src = URL.createObjectURL(myStream);
+                    ownVideo.play();
+                    // join a room
+                    webRTC.joinRoom("bigueRobAir");
+                    //WebRTC.joinRoom(roomidInput.value);
+                };
+                //var param = {audio:true,video:true};
+                webRTC.getMedia(null, success);
             });
-            
-            sendButton.addEventListener('click',function(e){
+
+            sendButton.addEventListener('click', function(e) {
                 e.preventDefault();
                 console.log('send data');
                 webRTC.sendData();
