@@ -1,27 +1,70 @@
-html {
-    background: #111111;
-    height: 100%;
-    background: linear-gradient( #333, #000);
+/* Définition des polices personnalisées */
+
+@font-face
+{
+    font-family: 'BallparkWeiner';
+    src: url('polices/ballpark.eot');
+    src: url('polices/ballpark.eot?#iefix') format('embedded-opentype'),
+         url('polices/ballpark.woff') format('woff'),
+         url('polices/ballpark.ttf') format('truetype'),
+         url('polices/ballpark.svg#BallparkWeiner') format('svg');
+    font-weight: normal;
+    font-style: normal;
 }
-canvas {
-    display: none;
+
+@font-face
+{
+    font-family: 'Dayrom';
+    src: url('polices/dayrom.eot');
+    src: url('polices/dayrom.eot?#iefix') format('embedded-opentype'),
+         url('polices/dayrom.woff') format('woff'),
+         url('polices/dayrom.ttf') format('truetype'),
+         url('polices/dayrom.svg#Dayrom') format('svg');
+    font-weight: normal;
+    font-style: normal;
 }
-video, img, #startbutton {
-    display: block;
-    float: left;
-    border: 10px solid #fff;
-    border-radius: 10px;
+
+
+/*****************************************************************************/
+/*L'ENTETE
+/*****************************************************************************/
+
+header h1{
+    font-family: 'BallparkWeiner', serif;
+    font-size: 2.5em;
+    font-weight: normal;
 }
-#startbutton {
-    background: green;
-    border: none;
-    color: #fff;
-    margin: 100px 20px 20px 20px;
-    padding: 10px 20px;
-    font-size: 20px;
+
+header h2
+{
+    font-family: Dayrom, serif;
+    font-size: 1.1em;
+    margin-top: 0px;
+    font-weight: normal;
 }
-#container {
-    overflow: hidden;
-    width: 880px;
-    margin: 20px auto;
+
+#titre_principal
+{
+    display: inline-block;
+}
+
+head{
+    width: 200px;
+    height: 150px
+}
+
+
+/*****************************************************************************/
+/*LE CORPS
+/*****************************************************************************/
+
+body{
+    background: url("../images/robot2.png") fixed no-repeat top right, url("../images/fonddecran.jpg") fixed;
+}
+
+#sendReceive
+{
+    position: absolute;
+    left: 360px;
+    top: 120px;
 }

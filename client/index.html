@@ -4,81 +4,118 @@ To change this license header, choose License Headers in Project Properties.
 To change this template file, choose Tools | Templates
 and open the template in the editor.
 -->
+
 <html>
     <head>
         <link rel="stylesheet" href="css/style.css">
         <title>Client WebRTC</title>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width">
-        <style>
-            video
-            {
-                width: 200px;
-                height: 150px
-            }
-        </style>
     </head>
+
     <body>
-        <div id="buttons">
-            <button id="creatChannel">CreatDataChannel</button>
-            <button id="joinChannel">JoinDataChannel</button>
-            <button id="sendButton">Send</button>
-            <button id="closeButton">Stop</button>
-        </div>
+        <header>
+            <div id="titre_principal">
+                <h1>WEBRTC</h1>
+                <h2>webRTC client</h2>
+            </div>
+        </header>
 
-        <div id="sendReceive">
-            <div id="send">
-                <h2>Send</h2>
-                <textarea id="dataChannelSend"></textarea>
-            </div>
-            <div id="receive">
-                <h2>Receive</h2>
-                <textarea id="dataChannelReceive" disabled></textarea>
-            </div>
-        </div>
+        <body>
+
+            <section>
+                <div id="myList">    
+                    <h2>Choose your robot</h2>
+                    <FORM>
+                        <SELECT name="nom" size="4" style="width:130px">
+                            <OPTION SELECTED>Robair1
+                            <OPTION>Robair2
+                            <OPTION>Robair3
+                            <OPTION>Robair4
+                            <OPTION>Robair5
+                        </SELECT>
+                    </FORM>
+                </div>
+                </br>
+
+                <h2>Click on button bollow</h2>
+                <div class="myButtons" id="buttons">
+                    <button id="creatChannel" style="width:330px">CreatDataChannel</button></br>
+                    <button id="joinChannel" style="width:330px">JoinDataChannel</button></br>
+                    <button id="sendButton" style="width:330px">Send</button></br>
+                    <button id="closeButton" style="width:330px">Stop</button></br>
+                </div>
+
+            </br></br></br></br>
+
+                <div id="sendReceive">
+                    <div id="send">
+                        <h2>Send</h2>
+                        <textarea id="dataChannelSend"></textarea>
+                    </div>
+                    <div id="receive">
+                        <h2>Receive</h2>
+                        <textarea id="dataChannelReceive" disabled></textarea>
+                    </div>
+                </div>
+
+
+            </section>
+            
+
+
+
         <script type="text/javascript" src="js/client.js"></script>
-        <script>
-            var localStream;
-            var localVideo = document.getElementById("localVideo");
-            var localPeerConnection, remotePeerConnection;
-            var sendChannel, receiveChannel;
-            var option;
+            <script>
+                var localStream;
+                var localVideo = document.getElementById("localVideo");
+                var localPeerConnection, remotePeerConnection;
+                var sendChannel, receiveChannel;
+                var option;
 
-            var creatChannelButton = document.getElementById("creatChannel");
-            var joinChannelButton = document.getElementById("joinChannel");
-            var sendButton = document.getElementById("sendButton");
-            var closeButton = document.getElementById("closeButton");
-//            creatChannel.disabled = false;
-//            joinChannel.disabled = false;
-//            sendButton.disabled = true;
-//            closeButton.disabled = true;
+                var creatChannelButton = document.getElementById("creatChannel");
+                var joinChannelButton = document.getElementById("joinChannel");
+                var sendButton = document.getElementById("sendButton");
+                var closeButton = document.getElementById("closeButton");
+    //            creatChannel.disabled = false;
+    //            joinChannel.disabled = false;
+    //            sendButton.disabled = true;
+    //            closeButton.disabled = true;
 
-            /*
-             * creation de l'objet webRTC
-             */
-            var webRTC = new WebRTC();
-            /*
-             * connexion au serveur
-             */
-            webRTC.connectToSocket('ws://localhost:63949');
+                /*
+                 * creation de l'objet webRTC
+                 */
+                var webRTC = new WebRTC();
+                /*
+                 * connexion au serveur
+                 */
+                webRTC.connectToSocket('ws://localhost:63949');
 
-            creatChannelButton.addEventListener('click', function(e) {
-                e.preventDefault();
-                console.log("creatRoom");
-                webRTC.createRoom();
-            });
-            
-            joinChannelButton.addEventListener('click',function(e){
-                e.preventDefault();
-                console.log("join room");
-                webRTC.joinRoom("bigueRobAir");
-            });
-            
-            sendButton.addEventListener('click',function(e){
-                e.preventDefault();
-                console.log('send data');
-                webRTC.sendData();
-            });
-        </script>
+                creatChannelButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log("creatRoom");
+                    webRTC.createRoom();
+                });
+                
+                joinChannelButton.addEventListener('click',function(e){
+                    e.preventDefault();
+                    console.log("join room");
+                    webRTC.joinRoom("bigueRobAir");
+                });
+                
+                sendButton.addEventListener('click',function(e){
+                    e.preventDefault();
+                    console.log('send data');
+                    webRTC.sendData();
+                });
+            </script>
+
+
+
+        <footer>
+            <p>Copyright HUSSON/BARBIER - Tous droits réservés<br />
+            <a href="https://github.com/Nexucis/Rob-Air/">https://github.com/Nexucis/Rob-Air/</a></p>
+        </footer>
     </body>
+
+
 </html>
