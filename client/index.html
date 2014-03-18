@@ -4,42 +4,69 @@ To change this license header, choose License Headers in Project Properties.
 To change this template file, choose Tools | Templates
 and open the template in the editor.
 -->
+
 <html>
     <head>
+        <link rel="stylesheet" href="css/style.css">
         <title>Client WebRTC</title>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width">
-        <style>
-            video
-            {
-                width: 200px;
-                height: 150px
-            }
-        </style>
     </head>
-    <body>
-        <div id="buttons">
-            <button id="creatChannel">CreatDataChannel</button>
-            <button id="joinChannel">JoinDataChannel</button>
-            <button id="sendButton">Send</button>
-            <button id="closeButton">Stop</button>
-        </div>
 
-        <div id="sendReceive">
-            <div id="send">
-                <h2>Send</h2>
-                <textarea id="dataChannelSend"></textarea>
+    <body>
+        <header>
+            <div id="titre_principal">
+                <h1>WEBRTC</h1>
+                <h2>webRTC client</h2>
             </div>
-            <div id="receive">
-                <h2>Receive</h2>
-                <textarea id="dataChannelReceive" disabled></textarea>
+        </header>
+        <section>
+            <div id="myList">    
+                <h2>Choose your robot</h2>
+                <FORM>
+                    <SELECT name="nom" size="4" style="width:130px">
+                        <OPTION SELECTED>Robair1
+                        <OPTION>Robair2
+                        <OPTION>Robair3
+                        <OPTION>Robair4
+                        <OPTION>Robair5
+                    </SELECT>
+                </FORM>
             </div>
-        </div>
-        <div class="video-wrapper">
-            <video id="otherVideo"></video>
-            <video id="ownVideo" ></video>
-        </div>
-        <script type="text/javascript" src="client.js"></script>
+            </br>
+
+            <h2>Click on button bollow</h2>
+            <div class="myButtons" id="buttons">
+                <button id="creatChannel" style="width:330px">CreatDataChannel</button></br>
+                <button id="joinChannel" style="width:330px">JoinDataChannel</button></br>
+                <button id="sendButton" style="width:330px">Send</button></br>
+                <button id="closeButton" style="width:330px">Stop</button></br>
+            </div>
+
+            </br></br></br></br>
+
+            <div id="sendReceive">
+                <div id="send">
+                    <h2>Send</h2>
+                    <textarea id="dataChannelSend"></textarea>
+                </div>
+                <div id="receive">
+                    <h2>Receive</h2>
+                    <textarea id="dataChannelReceive" disabled></textarea>
+                </div>
+            </div>
+            <div class="video-wrapper">
+                <video id="otherVideo"></video>
+                <video id="ownVideo" ></video>
+            </div>
+
+
+        </section>
+
+        <footer>
+            <p>Copyright HUSSON/BARBIER - Tous droits réservés<br />
+                <a href="https://github.com/Nexucis/Rob-Air/">https://github.com/Nexucis/Rob-Air/</a></p>
+        </footer>
+        <script type="text/javascript" src="js/client.js"></script>
         <script>
             var localStream;
             var localVideo = document.getElementById("localVideo");
@@ -116,5 +143,8 @@ and open the template in the editor.
                 webRTC.sendData();
             });
         </script>
+
     </body>
+
+
 </html>
