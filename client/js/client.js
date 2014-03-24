@@ -421,8 +421,6 @@ function WebRTC() {
                 navigator.mozGetUserMedia ||
                 navigator.msGetUserMedia);
 
-
-
         navigator.getMedia(param, function(stream) {
 
             myStream = stream;
@@ -432,6 +430,25 @@ function WebRTC() {
             console.log("getMedia failed " + err);
         });
     };
+    
+    // methode pour couper la camera localement
+
+    this.shutDownMedia = function() {
+        if (myStream) {
+            if (peerConnection && peerConnection.removeStream) {
+                try {
+                    peerConnection.removeStream(myStream);
+                } catch (err) {
+                    console.log("failed shutDownMedia :" + err);
+                }
+            }
+            if (myStream.stop) {
+                myStream.stop();
+            }
+            myStream.onended = null;
+            myStream = null;
+        }
+    }
 
     // get the other guys media stream
     this.getOtherStream = function() {

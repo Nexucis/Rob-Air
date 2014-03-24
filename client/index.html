@@ -40,6 +40,7 @@ and open the template in the editor.
                 <button id="joinChannel" style="width:330px">JoinDataChannel</button></br>
                 <button id="sendButton" style="width:330px">Send</button></br>
                 <button id="closeButton" style="width:330px">Stop</button></br>
+                <button id="closeMedia" style ="width:330px">CloseMedia</button></br>
             </div>
 
             </br></br></br></br>
@@ -78,6 +79,7 @@ and open the template in the editor.
             var joinChannelButton = document.getElementById("joinChannel");
             var sendButton = document.getElementById("sendButton");
             var closeButton = document.getElementById("closeButton");
+            var closeMedia = document.getElementById("closeMedia");
 
             var ownVideo = document.getElementById('ownVideo');
             var otherVideo = document.getElementById('otherVideo');
@@ -142,6 +144,19 @@ and open the template in the editor.
                 console.log('send data');
                 webRTC.sendData();
             });
+
+            closeMedia.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('close camera');
+                // permet de supprimer sur le .html le flux video
+                if (ownVideo) {
+                    ownVideo.onerror = null;
+                    ownVideo.pause();
+                    ownVideo.src = undefined;
+                    ownVideo = null;
+                }
+                webRTC.shutDownMedia();
+            })
         </script>
 
     </body>
