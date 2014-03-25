@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+
+<html>
+    <head>
+        <link rel="stylesheet" href="css/style.css">
+        <title>Tchat WebRTC</title>
+        <meta charset="UTF-8">
+    </head>
+
+    <body>
+        <header>
+            <div id="titre_principal">
+                <h1>WEBRTC</h1>
+                <h2>tentative de tchat</h2>
+            </div>
+        </header>
+        <section>
+            <h2>Click on button bollow</h2>
+            <div class="myButtons" id="buttons">
+                <button id="creatChannel" style="width:330px">CreatDataChannel</button></br>
+                <button id="joinChannel" style="width:330px">JoinDataChannel</button></br>
+                <button id="sendButton" style="width:330px">Send</button></br>
+                <button id="closeButton" style="width:330px">Stop</button></br>
+            </div>
+
+            </br></br></br></br>
+
+            <div id="sendReceive">
+                <div id="send">
+                    <h2>Send</h2>
+                    <textarea id="dataChannelSend"></textarea>
+                </div>
+                <div id="receive">
+                    <h2>Receive</h2>
+                    <textarea id="dataChannelReceive" disabled></textarea>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p>Copyright HUSSON/BARBIER - Tous droits réservés<br />
+                <a href="https://github.com/Nexucis/Rob-Air/">https://github.com/Nexucis/Rob-Air/</a></p>
+        </footer>
+        <script type="text/javascript" src="tchat.js"></script>
+        <script type="text/javascript" src="robair.js"></script>
+        
+        <script>
+            var localPeerConnection, remotePeerConnection;
+            var sendChannel, receiveChannel;
+            var option;
+
+            var creatChannelButton = document.getElementById("creatChannel");
+            var joinChannelButton = document.getElementById("joinChannel");
+            var sendButton = document.getElementById("sendButton");
+            var closeButton = document.getElementById("closeButton");
+            //            creatChannel.disabled = false;
+            //            joinChannel.disabled = false;
+            //            sendButton.disabled = true;
+            //            closeButton.disabled = true;
+
+            /*
+             * creation de l'objet webRTC
+             */
+            var webRTC = new WebRTC();
+            /*
+             * connexion au serveur
+             */
+            webRTC.connectToSocket('ws://localhost:6969');
+
+            document.addEventListener('socketEvent', function(socketEvent) {
+                switch (socketEvent.eventType) {
+                    case 'streamAdded':
+                        // we receive the video-stream of our partner
+                        // and play it on the video-element
+                        break;
+                }
+            });
+
+            creatChannelButton.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                webRTC.createRoom();
+            });
+
+            joinChannelButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log("join room");
+
+                webRTC.joinRoom("bigueRobAir");
+            });
+
+            sendButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('send data');
+                webRTC.sendData();
+            });
+        </script>
+
+    </body>
+
+
+</html>
