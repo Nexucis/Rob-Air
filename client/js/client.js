@@ -411,7 +411,7 @@ function WebRTC() {
     };
 
     this.getMedia = function(param, success) {
-        // param default
+        // param default 
         if (!param) {
             param = {audio: false, video: true};
         }

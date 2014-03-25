@@ -20,7 +20,7 @@ and open the template in the editor.
             </div>
         </header>
         <section>
-            <div id="myList">
+            <div id="myList">    
                 <h2>Choose your robot</h2>
                 <FORM>
                     <SELECT name="nom" size="4" style="width:130px">
@@ -41,6 +41,7 @@ and open the template in the editor.
                 <button id="sendButton" style="width:330px">Send</button></br>
                 <button id="closeButton" style="width:330px">Stop</button></br>
                 <button id="rightButton" style="width:330px">Right</button></br>
+                <button id="closeMedia" style ="width:330px">CloseMedia</button></br>
             </div>
 
             </br></br></br></br>
@@ -68,8 +69,7 @@ and open the template in the editor.
                 <a href="https://github.com/Nexucis/Rob-Air/">https://github.com/Nexucis/Rob-Air/</a></p>
         </footer>
         <script type="text/javascript" src="js/client.js"></script>
-        <script type="text/javascript" src="js/test.js"></script>
-
+        <script type="text/javascript" src="js/robair.js"></script>
         <script>
             var localStream;
             var localVideo = document.getElementById("localVideo");
@@ -81,6 +81,7 @@ and open the template in the editor.
             var joinChannelButton = document.getElementById("joinChannel");
             var sendButton = document.getElementById("sendButton");
             var closeButton = document.getElementById("closeButton");
+            var closeMedia = document.getElementById("closeMedia");
 
             var ownVideo = document.getElementById('ownVideo');
             var otherVideo = document.getElementById('otherVideo');
@@ -99,6 +100,7 @@ and open the template in the editor.
 */
             webRTC.connectToSocket('ws://localhost:6969');
             robair.connectToSocket('ws://localhost:8081/ws');
+
 
             document.addEventListener('socketEvent', function(socketEvent) {
                 switch (socketEvent.eventType) {
@@ -146,7 +148,6 @@ and open the template in the editor.
                 e.preventDefault();
                 console.log('send data');
                 webRTC.sendData();
-                //robair.say('top');
             });
 
             closeButton.addEventListener('click', function(e) {
@@ -162,8 +163,20 @@ and open the template in the editor.
                 //webRTC.sendData();
                 robair.say('right');
             });
+
+            closeMedia.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('close camera');
+                // permet de supprimer sur le .html le flux video
+                if (ownVideo) {
+                    ownVideo.onerror = null;
+                    ownVideo.pause();
+                    ownVideo.src = undefined;
+                    ownVideo = null;
+                }
+                webRTC.shutDownMedia();
+            });
         </script> 
 
     </body>
-
 </html>
