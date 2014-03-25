@@ -33,27 +33,23 @@ and open the template in the editor.
             <div id="sendReceive">
                 <div id="send">
                     <h2>Send</h2>
-                    <textarea id="dataChannelSend"></textarea>
+                    <textarea id="dataChannelSend" style="width:330px"></textarea>
                 </div>
                 <div id="receive">
                     <h2>Receive</h2>
-                    <textarea id="dataChannelReceive" disabled></textarea>
+                    <textarea id="dataChannelReceive" disabled style="width:330px"></textarea>
                 </div>
             </div>
         </section>
 
         <footer>
             <p>Copyright HUSSON/BARBIER - Tous droits réservés<br />
-                <a href="https://github.com/Nexucis/Rob-Air/">https://github.com/Nexucis/Rob-Air/</a></p>
+                <a href="https://github.com/Nexucis/Rob-Air/">gitHub</a></p>
         </footer>
         <script type="text/javascript" src="tchat.js"></script>
-        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js"></script>
         <script>
-            var localPeerConnection, remotePeerConnection;
-            var sendChannel, receiveChannel;
-            var option;
 
-            var creatChannelButton = document.getElementById("creatChannel");
+    var creatChannelButton = document.getElementById("creatChannel");
             var joinChannelButton = document.getElementById("joinChannel");
             var sendButton = document.getElementById("sendButton");
             var closeButton = document.getElementById("closeButton");
@@ -98,18 +94,17 @@ and open the template in the editor.
                 console.log('send data');
                 webRTC.sendData();
             });
-            $("#INPUT").keypress(function(e) {
-                var code = (e.keyCode ? e.keyCode : e.which);
-                if (code == 13) {
 
+            function KeyPress(e) {
+                var code = (e.keyCode ? e.keyCode : e.which);
+                if (code == 13) { // appuie sur la touche entrer
+                    console.log("enter push!!");
                     console.log('send data');
                     webRTC.sendData();
-
-                    return false;
-
                 }
+            }
+            document.onkeypress = KeyPress;
 
-            });
         </script>
 
     </body>

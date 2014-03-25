@@ -376,13 +376,14 @@ function WebRTC() {
         for (var i = 0; i < nbreChannel; i++) {
             sendChannel[i].send(data);
         }
-        console.log('Sent data to '+nbreChannel+' channel: ' + data);
+        console.log('Sent data to ' + nbreChannel + ' channel: ' + data);
+        document.getElementById("dataChannelSend").value = "";
     };
 
     //methode permettant de recevoir des data
     function receiveData(event) {
         console.log('Received message: ' + event.data);
-        document.getElementById("dataChannelReceive").value = event.data;
+        document.getElementById("dataChannelReceive").value += event.data;
     }
 
     // fonction permettant de recevoir le channel de data
