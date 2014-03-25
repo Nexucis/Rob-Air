@@ -6,26 +6,6 @@
 
 //closeButton.onclick = closeDataChannels;
 
-
-function getVideoAudio() {
-    navigator.getMedia = (navigator.getUserMedia ||
-            navigator.webkitGetUserMedia || // les fonctions préfixés par webkit sont utilisées par google chrome
-            navigator.mozGetUserMedia ||
-            navigator.msGetUserMedia);
-    navigator.getMedia({// param en premier, puis fonction prenant un stream, puis catcher les erreurs
-        video: true, // permet de demander au user d'autoriser l'utilisation de la caméra
-        audio: false // même chose pour le micro (le mettre à true)
-    }, function(stream) {
-        localVideo.src = URL.createObjectURL(stream); // récupération du stream
-        localStream = stream;
-        localVideo.play(); // lecture du stream à l'endroit souhaiter : ie entre <video></video> dans le html
-    }, function(err) {
-        trace("An error occured! " + err);
-    }
-    );
-
-}
-
 function WebRTC() {
 
     /*
@@ -36,9 +16,10 @@ function WebRTC() {
     var roomId = false; // here is the room-ID stored
     var myStream = false; // my media-stream
     var otherStream = false; // other guy`s media-stream
-    var sendChannel = false;
-    var receiveChannel = false;
-    var peerConnection = false; // RTCPeerconnection
+    var sendChannel = new Array();
+    var receiveChannel = new Array();
+    var nbreChannel = 0;
+    var peerConnection = new Array(); // RTCPeerconnection
     var iceServers = [];
     var peerConstraints = {optional: [{RtpDataChannels: true}]};// set DTLS encrpytion
     var otherSDP = false;
@@ -128,17 +109,17 @@ function WebRTC() {
         if (otherSDP &&
                 iceCandidate.candidate &&
                 iceCandidate.candidate !== null) {
-            peerConnection.addIceCandidate(createRTCIceCandidate(iceCandidate.candidate));
+            peerConnection[nbreChannel].addIceCandidate(createRTCIceCandidate(iceCandidate.candidate));
         }
     };
 
     // exchange of connection info is done, set SDP and ice-candidates
     var handshakeDone = function() {
-        peerConnection.setRemoteDescription(createRTCSessionDescription(otherSDP));
+        peerConnection[nbreChannel].setRemoteDescription(createRTCSessionDescription(otherSDP));
         // add other guy's ice-candidates to connection
         for (var i = 0; i < othersCandidates.length; i++) {
             if (othersCandidates[i].candidate) {
-                peerConnection.addIceCandidate(createRTCIceCandidate(othersCandidates[i].candidate));
+                peerConnection[nbreChannel].addIceCandidate(createRTCIceCandidate(othersCandidates[i].candidate));
             }
         }
         // fire event
@@ -148,28 +129,17 @@ function WebRTC() {
 
     // create an offer for an peerconnection
     var createOffer = function() {
-        peerConnection = new PeerConnection(iceServers, peerConstraints);
+        peerConnection[nbreChannel] = new PeerConnection(iceServers, peerConstraints);
 
         try {
-            sendChannel = peerConnection.createDataChannel("sendDataChannel", {reliable: false});
+            sendChannel[nbreChannel] = peerConnection[nbreChannel].createDataChannel("sendDataChannel", {reliable: false});
             console.log('Created send data channel');
         } catch (err) {
             console.log('dataChannel creation failed ' + err);
         }
 
-        peerConnection.addStream(myStream);
-
-        // other side added stream to peerconnection
-        peerConnection.onaddstream = function(e) {
-            console.log('other guys stream added');
-            otherStream = e.stream;
-            // fire event
-            socketEvent.eventType = 'streamAdded';
-            document.dispatchEvent(socketEvent);
-        };
-
         // we receive our icecandidates and send them to the other guy
-        peerConnection.onicecandidate = function(icecandidate) {
+        peerConnection[nbreChannel].onicecandidate = function(icecandidate) {
             console.log('icecandidate send to room ' + roomId);
             // send candidates to other guy
             var data = {
@@ -182,9 +152,9 @@ function WebRTC() {
 
         // we actually create the offer
         if (moz) {
-            peerConnection.createOffer(function(SDP) {
+            peerConnection[nbreChannel].createOffer(function(SDP) {
                 // set our SDP as local description
-                peerConnection.setLocalDescription(SDP);
+                peerConnection[nbreChannel].setLocalDescription(SDP);
                 console.log('sending offer from :' + SDP.sdp + '\n');
                 console.log('sending offer to: ' + roomId);
                 // send SDP to other guy
@@ -197,9 +167,9 @@ function WebRTC() {
             }, onSdpError, null);
         }
         else {
-            peerConnection.createOffer(function(SDP) {
+            peerConnection[nbreChannel].createOffer(function(SDP) {
                 // set our SDP as local description
-                peerConnection.setLocalDescription(SDP);
+                peerConnection[nbreChannel].setLocalDescription(SDP);
                 console.log('sending offer from :' + SDP.sdp + '\n');
                 console.log('sending offer to: ' + roomId);
                 // send SDP to other guy
@@ -216,11 +186,11 @@ function WebRTC() {
     // create an answer for an received offer
     var createAnswer = function() {
         // create new peer-object
-        peerConnection = new PeerConnection(iceServers, peerConstraints);
+        peerConnection[nbreChannel] = new PeerConnection(iceServers, peerConstraints);
 
         // set remote-description
         try {
-            peerConnection.setRemoteDescription(createRTCSessionDescription(otherSDP));
+            peerConnection[nbreChannel].setRemoteDescription(createRTCSessionDescription(otherSDP));
         } catch (err) {
             console.log("failed in setting remote description " + err);
             return;
@@ -228,29 +198,19 @@ function WebRTC() {
 
         // we receive our icecandidates and send them to the other guy
         try {
-            peerConnection.ondatachannel = gotReceiveChannel;
+            peerConnection[nbreChannel].ondatachannel = gotReceiveChannel;
             console.log('join dataChannel');
         } catch (err) {
             console.log('dataChannel joingning ' + err);
         }
         try {
-            sendChannel = peerConnection.createDataChannel("sendDataChannel", {reliable: false});
+            sendChannel[nbreChannel] = peerConnection[nbreChannel].createDataChannel("sendDataChannel", {reliable: false});
             console.log('Created send data channel');
         } catch (err) {
             console.log('dataChannel creation failed ' + err);
         }
-        peerConnection.addStream(myStream);
 
-        peerConnection.onaddstream = function(e) {
-            console.log('stream added');
-            otherStream = e.stream;
-            // fire event
-            socketEvent.eventType = 'streamAdded';
-            document.dispatchEvent(socketEvent);
-        };
-
-
-        peerConnection.onicecandidate = function(icecandidate) {
+        peerConnection[nbreChannel].onicecandidate = function(icecandidate) {
             console.log('icecandidate send to room ' + roomId);
             // send candidates to other guy
             var data = {
@@ -263,14 +223,14 @@ function WebRTC() {
 
         // we create the answer
         if (moz) { // utilisation de firefox
-            peerConnection.createAnswer(function(SDP) {
+            peerConnection[nbreChannel].createAnswer(function(SDP) {
                 // set our SDP as local description
-                peerConnection.setLocalDescription(SDP);
+                peerConnection[nbreChannel].setLocalDescription(SDP);
 
                 // add other guy's ice-candidates to connection
                 for (var i = 0; i < othersCandidates.length; i++) {
                     if (othersCandidates[i].candidate) {
-                        peerConnection.addIceCandidate(ceateRTCIceCandidate(othersCandidates[i].candidate));
+                        peerConnection[nbreChannel].addIceCandidate(ceateRTCIceCandidate(othersCandidates[i].candidate));
                     }
                 }
 
@@ -286,14 +246,14 @@ function WebRTC() {
             }, onSdpError, null);
         }
         else {// google chrome
-            peerConnection.createAnswer(function(SDP) {
+            peerConnection[nbreChannel].createAnswer(function(SDP) {
                 // set our SDP as local description
-                peerConnection.setLocalDescription(SDP);
+                peerConnection[nbreChannel].setLocalDescription(SDP);
 
                 // add other guy's ice-candidates to connection
                 for (var i = 0; i < othersCandidates.length; i++) {
                     if (othersCandidates[i].candidate) {
-                        peerConnection.addIceCandidate(ceateRTCIceCandidate(othersCandidates[i].candidate));
+                        peerConnection[nbreChannel].addIceCandidate(ceateRTCIceCandidate(othersCandidates[i].candidate));
                     }
                 }
 
@@ -377,7 +337,7 @@ function WebRTC() {
                 case 'answer':
                     console.log('answer received, connection will be established');
                     otherSDP = data.payload;
-                    peerConnection.ondatachannel = gotReceiveChannel;
+                    peerConnection[nbreChannel].ondatachannel = gotReceiveChannel;
                     handshakeDone();
                     break;
                     // we receive icecandidates from the other guy
@@ -410,61 +370,13 @@ function WebRTC() {
         createOffer();
     };
 
-    this.getMedia = function(param, success) {
-        // param default 
-        if (!param) {
-            param = {audio: false, video: true};
-        }
-
-        navigator.getMedia = (navigator.getUserMedia ||
-                navigator.webkitGetUserMedia || // les fonctions préfixés par webkit sont utilisées par google chrome
-                navigator.mozGetUserMedia ||
-                navigator.msGetUserMedia);
-
-        navigator.getMedia(param, function(stream) {
-
-            myStream = stream;
-            success(myStream);
-
-        }, function(err) {
-            console.log("getMedia failed " + err);
-        });
-    };
-    
-    this.openMedia = function(success){
-        this.getMedia(null,success);
-        peerConnection.addStream(myStream);
-    };
-    
-    // methode pour couper la camera localement
-
-    this.shutDownMedia = function() {
-        if (myStream) {
-            if (peerConnection && peerConnection.removeStream) {
-                try {
-                    peerConnection.removeStream(myStream);
-                } catch (err) {
-                    console.log("failed shutDownMedia :" + err);
-                }
-            }
-            if (myStream.stop) {
-                myStream.stop();
-            }
-            myStream.onended = null;
-            myStream.src = null;
-        }
-    };
-
-    // get the other guys media stream
-    this.getOtherStream = function() {
-        return otherStream;
-    };
-
     // methode permettant d'envoyer des datas
     this.sendData = function() {
         var data = document.getElementById("dataChannelSend").value;
-        sendChannel.send(data);
-        console.log('Sent data: ' + data);
+        for (var i = 0; i < nbreChannel; i++) {
+            sendChannel[i].send(data);
+        }
+        console.log('Sent data to '+nbreChannel+' channel: ' + data);
     };
 
     //methode permettant de recevoir des data
@@ -476,7 +388,8 @@ function WebRTC() {
     // fonction permettant de recevoir le channel de data
     function gotReceiveChannel(event) {
         console.log('Receive Channel Callback');
-        receiveChannel = event.channel;
-        receiveChannel.onmessage = receiveData;
+        receiveChannel[nbreChannel] = event.channel;
+        receiveChannel[nbreChannel].onmessage = receiveData;
+        nbreChannel++;
     }
 }
