@@ -387,6 +387,9 @@ function WebRTC() {
             case "left": robair.say('left'); break;
             case "s": robair.say('s'); break;
             case "p": robair.say('presentation'); break;
+            case "o": robair.say('exterminate'); break;
+            case "i": robair.say('pardon'); break;
+            case "u": robair.say('merci'); break;
             default: console.log("It's not a mouvement command"); break;
         }
     }
