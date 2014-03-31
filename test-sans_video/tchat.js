@@ -376,6 +376,70 @@ function WebRTC() {
         console.log('Sent data: ' + data);
     };
 
+
+    // methode permettant d'envoyer la commande top
+    this.sendTop = function() {
+        data="top";
+        sendChannel.send(data);
+        console.log('Sent data: ' + data);
+    };
+
+    // methode permettant d'envoyer la commande right
+    this.sendRight = function() {
+        data="right";
+        sendChannel.send(data);
+        console.log('Sent data: ' + data);
+    };
+
+    // methode permettant d'envoyer la commande left
+    this.sendLeft = function() {
+        data="left";
+        sendChannel.send(data);
+        console.log('Sent data: ' + data);
+    };
+
+    // methode permettant d'envoyer la commande bottom
+    this.sendBottom = function() {
+        data="down";
+        sendChannel.send(data);
+        console.log('Sent data: ' + data);
+    };
+
+    // methode permettant d'envoyer la commande stop
+    this.sendStop = function() {
+        data="s";
+        sendChannel.send(data);
+        console.log('Sent data: ' + data);
+    };
+
+    // methode permettant d'envoyer la commande stop
+    this.sendPresentation = function() {
+        data="p";
+        sendChannel.send(data);
+        console.log('Sent data: ' + data);
+    };
+
+    // methode permettant d'envoyer la commande stop
+    this.sendExterminate = function() {
+        data="o";
+        sendChannel.send(data);
+        console.log('Sent data: ' + data);
+    };
+
+    // methode permettant d'envoyer la commande stop
+    this.sendPardon = function() {
+        data="i";
+        sendChannel.send(data);
+        console.log('Sent data: ' + data);
+    };
+
+    // methode permettant d'envoyer la commande stop
+    this.sendMerci = function() {
+        data="u";
+        sendChannel.send(data);
+        console.log('Sent data: ' + data);
+    };
+
     //methode permettant de recevoir des data
     function receiveData(event) {
         console.log('Received message: ' + event.data);

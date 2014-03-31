@@ -28,6 +28,23 @@ and open the template in the editor.
                 <button id="closeButton" style="width:330px">Stop</button></br>
             </div>
 
+            <div id="joystick">
+                <button class="top" id="topButton">top</button></br>
+                <button class="left" id="leftButton">left</button>
+                <button class="stop" id="stopButton">stop</button>
+                <button class="right" id="rightButton">right</button></br>
+                <button class="bottom" id="bottomButton">bottom</button>
+            </div>
+
+            <div id="voiceButtons">
+                <button class="presentation" id="presentationButton">Presentation</button>
+                <button class="merci" id="merciButton">Merci</button></br>
+                <button class="pardon" id="pardonButton">Presentation</button>
+                <button class="exterminate" id="exterminateButton">Presentation</button></br>
+            </div>
+
+
+
             </br></br></br></br>
 
             <div id="sendReceive">
@@ -46,18 +63,31 @@ and open the template in the editor.
             <p>Copyright HUSSON/BARBIER - Tous droits réservés<br />
                 <a href="https://github.com/Nexucis/Rob-Air/">https://github.com/Nexucis/Rob-Air/</a></p>
         </footer>
+
+
         <script type="text/javascript" src="tchat.js"></script>
         <script type="text/javascript" src="robair.js"></script>
         
         <script>
             var localPeerConnection, remotePeerConnection;
-            var sendChannel, receiveChannel;
+            var sendChannel, receiveChannel, top;
             var option;
 
             var creatChannelButton = document.getElementById("creatChannel");
             var joinChannelButton = document.getElementById("joinChannel");
             var sendButton = document.getElementById("sendButton");
             var closeButton = document.getElementById("closeButton");
+            var topButton = document.getElementById("topButton");
+            var right = document.getElementById("rightButton");
+            var left = document.getElementById("leftButton");
+            var bottom = document.getElementById("bottomButton");
+            var stop = document.getElementById("stopButton");
+            var presentation = document.getElementById("presentationButton");
+            var merci = document.getElementById("merciButton");
+            var pardon = document.getElementById("pardonButton");
+            var exterminate = document.getElementById("exterminateButton");
+
+
             //            creatChannel.disabled = false;
             //            joinChannel.disabled = false;
             //            sendButton.disabled = true;
@@ -95,12 +125,67 @@ and open the template in the editor.
 
                 webRTC.joinRoom("bigueRobAir");
             });
-
+    
             sendButton.addEventListener('click', function(e) {
                 e.preventDefault();
                 console.log('send data');
                 webRTC.sendData();
             });
+
+            topButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('send TOP');
+                webRTC.sendTop();
+            });
+
+            rightButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('send TOP');
+                webRTC.sendRight();
+            });
+
+            leftButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('send TOP');
+                webRTC.sendLeft();
+            });
+
+            bottomButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('send TOP');
+                webRTC.sendBottom();
+            });
+
+            stopButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('send TOP');
+                webRTC.sendStop();
+            });
+
+            presentationButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('send TOP');
+                webRTC.sendPresentation();
+            });
+
+            merciButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('send TOP');
+                webRTC.sendMerci();
+            });
+
+            exterminateButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('send TOP');
+                webRTC.sendExterminate();
+            });
+
+            pardonButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('send TOP');
+                webRTC.sendPardon();
+            });
+            
         </script>
 
     </body>
