@@ -1,0 +1,132 @@
+/* Définition des polices personnalisées */
+
+@font-face
+{
+    font-family: 'BallparkWeiner';
+    src: url('polices/ballpark.eot');
+    src: url('polices/ballpark.eot?#iefix') format('embedded-opentype'),
+         url('polices/ballpark.woff') format('woff'),
+         url('polices/ballpark.ttf') format('truetype'),
+         url('polices/ballpark.svg#BallparkWeiner') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face
+{
+    font-family: 'Dayrom';
+    src: url('polices/dayrom.eot');
+    src: url('polices/dayrom.eot?#iefix') format('embedded-opentype'),
+         url('polices/dayrom.woff') format('woff'),
+         url('polices/dayrom.ttf') format('truetype'),
+         url('polices/dayrom.svg#Dayrom') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+
+/*****************************************************************************/
+/*L'ENTETE
+/*****************************************************************************/
+
+header h1{
+    font-family: 'BallparkWeiner', serif;
+    font-size: 2.5em;
+    font-weight: normal;
+}
+
+header h2
+{
+    font-family: Dayrom, serif;
+    font-size: 1.1em;
+    margin-top: 0px;
+    font-weight: normal;
+}
+
+#titre_principal
+{
+    display: inline-block;
+}
+
+head{
+    width: 200px;
+    height: 150px
+}
+
+
+/*****************************************************************************/
+/*LE CORPS
+/*****************************************************************************/
+
+body{
+    background: url("../images/robot2.png") fixed no-repeat top right, url("../images/fonddecran.jpg") fixed;
+}
+
+#joystick
+{
+    position: absolute;
+    left: 600px;
+    top: 200px;
+}
+
+
+#voiceButtons
+{
+    position: absolute;
+    right: 200px;
+    top: 200px;    
+}
+
+
+
+/*****************************************************************************/
+/*LES BUTTONS
+/*****************************************************************************/
+
+.top{
+    height: 200px;
+    width: 160px;
+    margin-left: 200px;
+}
+
+.right{
+    height: 130px;
+    width: 200px;
+}
+
+.left{
+    height: 130px;
+    width: 200px;
+}
+
+.stop{
+    height: 130px;
+    width: 155px;
+    background: red;
+}
+
+.bottom{
+    height: 200px;
+    width: 160px;
+    margin-left: 200px;
+}
+
+.presentation{
+    height:100px;
+    width:100px;
+}
+
+.merci{
+    height:100px;
+    width:100px;
+}
+
+.pardon{
+    height:100px;
+    width:100px;
+}
+
+.exterminate{
+    height:100px;
+    width:100px;
+}
