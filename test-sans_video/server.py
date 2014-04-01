@@ -37,10 +37,14 @@ class WSHandler(tornado.websocket.WebSocketHandler):
                 if payload in directions.keys():
                     print("%s" % payload)
                     self.pub.publish(Command(directions[payload],0.0,0.0))
-                    #os.system("rosrun sound_play play.py ~/ros_workspace/robair_demo/voix/pres.wav &")
                 elif (payload=='p'):
-                    print "je joue de la musique"
-                    os.system("rosrun sound_play play.py ~/ros_workspace/robair_demo/voix/pres.wav &")           
+                    os.system("rosrun sound_play play.py ~/ros_workspace/robair_demo/voix/pres.wav &") 
+                elif (payload=='o'):
+                    os.system("rosrun sound_play play.py ~/ros_workspace/robair_demo/voix/exterminate.wav &") 
+                elif (payload=='i'):
+                    os.system("rosrun sound_play play.py ~/ros_workspace/robair_demo/voix/pardon.wav &") 
+                elif (payload=='u'):
+                    os.system("rosrun sound_play play.py ~/ros_workspace/robair_demo/voix/merci.wav &")           
 	except (ValueError, KeyError, TypeError):
             print("JSON format error")
  

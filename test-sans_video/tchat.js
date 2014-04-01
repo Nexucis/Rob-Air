@@ -412,28 +412,28 @@ function WebRTC() {
         console.log('Sent data: ' + data);
     };
 
-    // methode permettant d'envoyer la commande stop
+    // methode permettant d'envoyer la commande son presentation
     this.sendPresentation = function() {
         data="p";
         sendChannel.send(data);
         console.log('Sent data: ' + data);
     };
 
-    // methode permettant d'envoyer la commande stop
+    // methode permettant d'envoyer la commande son exterminate
     this.sendExterminate = function() {
         data="o";
         sendChannel.send(data);
         console.log('Sent data: ' + data);
     };
 
-    // methode permettant d'envoyer la commande stop
+    // methode permettant d'envoyer la commande son son pardon
     this.sendPardon = function() {
         data="i";
         sendChannel.send(data);
         console.log('Sent data: ' + data);
     };
 
-    // methode permettant d'envoyer la commande stop
+    // methode permettant d'envoyer la commande son merci
     this.sendMerci = function() {
         data="u";
         sendChannel.send(data);
