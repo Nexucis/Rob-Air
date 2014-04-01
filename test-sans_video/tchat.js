@@ -1,36 +1,16 @@
-/*
-* To change this license header, choose License Headers in Project Properties.
-* To change this template file, choose Tools | Templates
-* and open the template in the editor.
-*/
+/* 
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 
 //closeButton.onclick = closeDataChannels;
-
-
-function getVideoAudio() {
-    navigator.getMedia = (navigator.getUserMedia ||
-            navigator.webkitGetUserMedia || // les fonctions préfixés par webkit sont utilisées par google chrome
-            navigator.mozGetUserMedia ||
-            navigator.msGetUserMedia);
-    navigator.getMedia({// param en premier, puis fonction prenant un stream, puis catcher les erreurs
-        video: true, // permet de demander au user d'autoriser l'utilisation de la caméra
-        audio: false // même chose pour le micro (le mettre à true)
-    }, function(stream) {
-        localVideo.src = URL.createObjectURL(stream); // récupération du stream
-        localStream = stream;
-        localVideo.play(); // lecture du stream à l'endroit souhaiter : ie entre <video></video> dans le html
-    }, function(err) {
-        trace("An error occured! " + err);
-    }
-    );
-
-}
 
 function WebRTC() {
 
     /*
-* Private Attributes
-*/
+     * 	Private Attributes
+     */
     var moz = !!navigator.mozGetUserMedia;
     var connection = false;
     var roomId = false; // here is the room-ID stored
@@ -59,8 +39,8 @@ function WebRTC() {
     socketEvent.initEvent('socketEvent', true, true);
 
     /*
-* initialisation de iceServers --> va permettre de récupérer son ip
-*/
+     * initialisation de iceServers --> va permettre de récupérer son ip 
+     */
 
     if (moz) {
         iceServers.push({
@@ -85,8 +65,8 @@ function WebRTC() {
         iceServers: iceServers
     };
     /*
-* Private Methods
-*/
+     * 	Private Methods
+     */
 
     // encode to JSON and send data to server
     var sendToServer = function(data) {
@@ -156,17 +136,6 @@ function WebRTC() {
         } catch (err) {
             console.log('dataChannel creation failed ' + err);
         }
-
-        peerConnection.addStream(myStream);
-
-        // other side added stream to peerconnection
-        peerConnection.onaddstream = function(e) {
-            console.log('other guys stream added');
-            otherStream = e.stream;
-            // fire event
-            socketEvent.eventType = 'streamAdded';
-            document.dispatchEvent(socketEvent);
-        };
 
         // we receive our icecandidates and send them to the other guy
         peerConnection.onicecandidate = function(icecandidate) {
@@ -239,16 +208,6 @@ function WebRTC() {
         } catch (err) {
             console.log('dataChannel creation failed ' + err);
         }
-        peerConnection.addStream(myStream);
-
-        peerConnection.onaddstream = function(e) {
-            console.log('stream added');
-            otherStream = e.stream;
-            // fire event
-            socketEvent.eventType = 'streamAdded';
-            document.dispatchEvent(socketEvent);
-        };
-
 
         peerConnection.onicecandidate = function(icecandidate) {
             console.log('icecandidate send to room ' + roomId);
@@ -320,8 +279,8 @@ function WebRTC() {
     }
 
     /*
-* Public Methods
-*/
+     * 	Public Methods
+     */
 
     // this function handles all the websocket-stuff
     this.connectToSocket = function(wsUrl) {
@@ -410,56 +369,6 @@ function WebRTC() {
         createOffer();
     };
 
-    this.getMedia = function(param, success) {
-        // param default 
-        if (!param) {
-            param = {audio: false, video: true};
-        }
-
-        navigator.getMedia = (navigator.getUserMedia ||
-                navigator.webkitGetUserMedia || // les fonctions préfixés par webkit sont utilisées par google chrome
-                navigator.mozGetUserMedia ||
-                navigator.msGetUserMedia);
-
-        navigator.getMedia(param, function(stream) {
-
-            myStream = stream;
-            success(myStream);
-
-        }, function(err) {
-            console.log("getMedia failed " + err);
-        });
-    };
-    
-    this.openMedia = function(success){
-        this.getMedia(null,success);
-        peerConnection.addStream(myStream);
-    };
-    
-    // methode pour couper la camera localement
-
-    this.shutDownMedia = function() {
-        if (myStream) {
-            if (peerConnection && peerConnection.removeStream) {
-                try {
-                    peerConnection.removeStream(myStream);
-                } catch (err) {
-                    console.log("failed shutDownMedia :" + err);
-                }
-            }
-            if (myStream.stop) {
-                myStream.stop();
-            }
-            myStream.onended = null;
-            myStream.src = null;
-        }
-    };
-
-    // get the other guys media stream
-    this.getOtherStream = function() {
-        return otherStream;
-    };
-
     // methode permettant d'envoyer des datas
     this.sendData = function() {
         var data = document.getElementById("dataChannelSend").value;
@@ -471,6 +380,18 @@ function WebRTC() {
     function receiveData(event) {
         console.log('Received message: ' + event.data);
         document.getElementById("dataChannelReceive").value = event.data;
+        switch(event.data){
+            case "top": robair.say('top'); break;
+            case "down": robair.say('bottom'); break;
+            case "right": robair.say('right'); break;
+            case "left": robair.say('left'); break;
+            case "s": robair.say('s'); break;
+            case "p": robair.say('presentation'); break;
+            case "o": robair.say('exterminate'); break;
+            case "i": robair.say('pardon'); break;
+            case "u": robair.say('merci'); break;
+            default: console.log("It's not a mouvement command"); break;
+        }
     }
 
     // fonction permettant de recevoir le channel de data

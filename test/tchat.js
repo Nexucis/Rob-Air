@@ -1,32 +1,23 @@
-/* 
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 
-//closeButton.onclick = closeDataChannels;
+
+// classe WebRTC. Cette classe va permettre de mettre en relation deux utilisateurs présent sur la même page web
+// Le principe est simple. Tout d'abord, on récupère son adresse ip grace à un IceServers.
+// Ensuite en passant par un serveur websocket, on envoit des données à l'autre utilisateur afin de se connecter à lui
+// On envoit un IceCandidate et une donnée nommée SDP
+// Lors de la réception de ces informations l'autre utilisateur va renvoyer les mêmes informations qui sont cette fois
+// propre à son navigateur internet.
+// Une fois la connexion établie, les flux échangés entre les utilisateurs ne passent plus par un serveur.
+
 
 function WebRTC() {
+    //attribut de classe
+    var connection = false; // connexion au serveur ws
+    var sendChannel = new Array(); // tableau de channel dans lesquels on enverra des données
+    var receiveChannel = new Array(); // tableau de channel dans lesquels on recevra des informations
 
-    /*
-     * 	Private Attributes
-     */
-    var moz = !!navigator.mozGetUserMedia;
-    var connection = false;
-    var roomId = false; // here is the room-ID stored
-    var myStream = false; // my media-stream
-    var otherStream = false; // other guy`s media-stream
-    var sendChannel = new Array();
-    var receiveChannel = new Array();
-    var nbreChannel = 0;
-    var peerConnection = new Array(); // RTCPeerconnection
-    var iceServers = [];
-    var peerConstraints = {optional: [{RtpDataChannels: true}]};// set DTLS encrpytion
-    var otherSDP = false;
-    var othersCandidates = []; // other guy's icecandidates
-    var PeerConnection = window.RTCPeerConnection
-            || window.webkitRTCPeerConnection
-            || window.mozRTCPeerConnection;
+    var PeerConnection = window.RTCPeerConnection // suivant le navigateur internet la fonction diffère
+            || window.webkitRTCPeerConnection // google chrome
+            || window.mozRTCPeerConnection; // mozzila
 
     var SessionDescription = window.RTCSessionDescription
             || window.webkitRTCSessionDescription
@@ -35,14 +26,17 @@ function WebRTC() {
     var IceCandidate = window.RTCIceCandidate
             || window.webkitRTCIceCandidate
             || window.mozRTCIceCandidate;
-    // via this element we will send events to the view
-    var socketEvent = document.createEvent('Event');
-    socketEvent.initEvent('socketEvent', true, true);
+
+    var peerConnection = new Array(); // tableau de connexion. C'est là qu'on établira les connexions avec les autres navigateurs
+    var iceServers = [];
+    var peerConstraints = {optional: [{RtpDataChannels: true}]};// option lors de la création de connexion. Ici on choisit d'établir un channel de data
+    
+    var cptConnexion = 0;
 
     /*
-     * initialisation de iceServers --> va permettre de récupérer son ip 
+     * initialisation de iceServers --> va permettre de récupérer son ip
      */
-
+    var moz = !!navigator.mozGetUserMedia; // détermine si on est sur mozzila
     if (moz) {
         iceServers.push({
             url: 'stun:23.21.150.121'
@@ -65,332 +59,81 @@ function WebRTC() {
     iceServers = {
         iceServers: iceServers
     };
-    /*
-     * 	Private Methods
+    /*===================================
+     * ========== methode privee ========
+     * ==================================
      */
 
-    // encode to JSON and send data to server
-    var sendToServer = function(data) {
+    // on souhaite rejoindre un channel, il faut donc pour cela construire notre question
+    var createAsk = function() {
+        peerConnection[cptConnexion] = new PeerConnection(iceServers, peerConstraints); // initialisation de la connexion
+        
         try {
-            connection.send(JSON.stringify(data));
-            return true;
-        } catch (e) {
-            console.log('There is no connection to the websocket server');
-            return false;
-        }
-    };
-
-    // create ice-candidate
-    var createRTCIceCandidate = function(candidate) {
-        var ice = new IceCandidate(candidate);
-        return ice;
-    };
-
-    // create an session description object
-    var createRTCSessionDescription = function(sdp) {
-        console.log("sdp :" + sdp);
-        if (typeof (SessionDescription) == 'function') {
-            var newSdp = new SessionDescription(sdp);
-            console.log('SessionDescription is a function');
-        }
-        else
-            var newSdp = new RTCSessionDescription(sdp);
-
-        console.log("in createRTCSessionDescription newSdp " + newSdp);
-        return newSdp;
-    };
-    // set or save the icecandidates
-    var setIceCandidates = function(iceCandidate) {
-        // push icecandidate to array if no SDP of other guys is available
-        if (!otherSDP) {
-            othersCandidates.push(iceCandidate);
-        }
-        // add icecandidates immediately if not Firefox & if remoteDescription is set
-        if (otherSDP &&
-                iceCandidate.candidate &&
-                iceCandidate.candidate !== null) {
-            peerConnection[nbreChannel].addIceCandidate(createRTCIceCandidate(iceCandidate.candidate));
-        }
-    };
-
-    // exchange of connection info is done, set SDP and ice-candidates
-    var handshakeDone = function() {
-        peerConnection[nbreChannel].setRemoteDescription(createRTCSessionDescription(otherSDP));
-        // add other guy's ice-candidates to connection
-        for (var i = 0; i < othersCandidates.length; i++) {
-            if (othersCandidates[i].candidate) {
-                peerConnection[nbreChannel].addIceCandidate(createRTCIceCandidate(othersCandidates[i].candidate));
-            }
-        }
-        // fire event
-        socketEvent.eventType = 'p2pConnectionReady';
-        document.dispatchEvent(socketEvent);
-    };
-
-    // create an offer for an peerconnection
-    var createOffer = function() {
-        peerConnection[nbreChannel] = new PeerConnection(iceServers, peerConstraints);
-
-        try {
-            sendChannel[nbreChannel] = peerConnection[nbreChannel].createDataChannel("sendDataChannel", {reliable: false});
-            console.log('Created send data channel');
+            sendChannel[cptConnexion] = peerConnection.createDataChannel("sendDataChannel", {reliable: false});
+            console.log('Création d\'un data channe');
         } catch (err) {
-            console.log('dataChannel creation failed ' + err);
+            console.log('erreur de création de data channel ' + err);
         }
 
-        // we receive our icecandidates and send them to the other guy
-        peerConnection[nbreChannel].onicecandidate = function(icecandidate) {
-            console.log('icecandidate send to room ' + roomId);
-            // send candidates to other guy
-            var data = {
-                type: 'iceCandidate',
-                roomId: roomId,
-                payload: icecandidate
-            };
-            sendToServer(data);
-        };
-
-        // we actually create the offer
-        if (moz) {
-            peerConnection[nbreChannel].createOffer(function(SDP) {
-                // set our SDP as local description
-                peerConnection[nbreChannel].setLocalDescription(SDP);
-                console.log('sending offer from :' + SDP.sdp + '\n');
-                console.log('sending offer to: ' + roomId);
-                // send SDP to other guy
-                var data = {
-                    type: 'offer',
-                    roomId: roomId,
-                    payload: SDP
-                };
-                sendToServer(data);
-            }, onSdpError, null);
-        }
-        else {
-            peerConnection[nbreChannel].createOffer(function(SDP) {
-                // set our SDP as local description
-                peerConnection[nbreChannel].setLocalDescription(SDP);
-                console.log('sending offer from :' + SDP.sdp + '\n');
-                console.log('sending offer to: ' + roomId);
-                // send SDP to other guy
-                var data = {
-                    type: 'offer',
-                    roomId: roomId,
-                    payload: SDP
-                };
-                sendToServer(data);
-            });
-        }
     };
 
-    // create an answer for an received offer
+    // après avoir reçu des informations de l'utilisateur demandeur on fabrique notre réponse
     var createAnswer = function() {
-        // create new peer-object
-        peerConnection[nbreChannel] = new PeerConnection(iceServers, peerConstraints);
 
-        // set remote-description
-        try {
-            peerConnection[nbreChannel].setRemoteDescription(createRTCSessionDescription(otherSDP));
-        } catch (err) {
-            console.log("failed in setting remote description " + err);
-            return;
-        }
-
-        // we receive our icecandidates and send them to the other guy
-        try {
-            peerConnection[nbreChannel].ondatachannel = gotReceiveChannel;
-            console.log('join dataChannel');
-        } catch (err) {
-            console.log('dataChannel joingning ' + err);
-        }
-        try {
-            sendChannel[nbreChannel] = peerConnection[nbreChannel].createDataChannel("sendDataChannel", {reliable: false});
-            console.log('Created send data channel');
-        } catch (err) {
-            console.log('dataChannel creation failed ' + err);
-        }
-
-        peerConnection[nbreChannel].onicecandidate = function(icecandidate) {
-            console.log('icecandidate send to room ' + roomId);
-            // send candidates to other guy
-            var data = {
-                type: 'iceCandidate',
-                roomId: roomId,
-                payload: icecandidate
-            };
-            sendToServer(data);
-        };
-
-        // we create the answer
-        if (moz) { // utilisation de firefox
-            peerConnection[nbreChannel].createAnswer(function(SDP) {
-                // set our SDP as local description
-                peerConnection[nbreChannel].setLocalDescription(SDP);
-
-                // add other guy's ice-candidates to connection
-                for (var i = 0; i < othersCandidates.length; i++) {
-                    if (othersCandidates[i].candidate) {
-                        peerConnection[nbreChannel].addIceCandidate(ceateRTCIceCandidate(othersCandidates[i].candidate));
-                    }
-                }
-
-                // send SDP to other guy
-                console.log('sending answer from :' + SDP.sdp + '\n');
-                console.log('sending answer to: ' + roomId);
-                var data = {
-                    type: 'answer',
-                    roomId: roomId,
-                    payload: SDP
-                };
-                sendToServer(data);
-            }, onSdpError, null);
-        }
-        else {// google chrome
-            peerConnection[nbreChannel].createAnswer(function(SDP) {
-                // set our SDP as local description
-                peerConnection[nbreChannel].setLocalDescription(SDP);
-
-                // add other guy's ice-candidates to connection
-                for (var i = 0; i < othersCandidates.length; i++) {
-                    if (othersCandidates[i].candidate) {
-                        peerConnection[nbreChannel].addIceCandidate(ceateRTCIceCandidate(othersCandidates[i].candidate));
-                    }
-                }
-
-                // send SDP to other guy
-                //console.log('val dsp :'+SDP);
-                var data = {
-                    type: 'answer',
-                    roomId: roomId,
-                    payload: SDP
-                };
-                sendToServer(data);
-            });
-        }
     };
 
-    var onSdpError = function(e) {
-        var message = JSON.stringify(e, null, '\t');
-
-        if (message.indexOf('RTP/SAVPF Expects at least 4 fields') != -1) {
-            message = 'It seems that you are trying to interop RTP-datachannels with SCTP. It is not supported!';
-        }
-
-        console.error('onSdpError:', message);
-    }
-
-    /*
-     * 	Public Methods
+    /*===================================
+     * ========== methode publique ======
+     * ==================================
      */
 
-    // this function handles all the websocket-stuff
     this.connectToSocket = function(wsUrl) {
-        // open the websocket
+        // ouverture de la connexion au serveur d'url wsUrl
         connection = new WebSocket(wsUrl);
 
-        // connection was successful
+        // connexion etablie
         connection.onopen = function(event) {
-            console.log((new Date()) + ' Connection successfully established');
+            console.log((new Date()) + ' la connexion a bien été établit avec le serveur');
         };
 
-        // connection couldn't be established
+        // la connexion ne s'est pas etablie
         connection.onerror = function(error) {
-            console.log((new Date()) + ' WebSocket connection error: ');
+            console.log((new Date()) + ' il y a eu une erreur de connexion');
             console.log(error);
         };
 
-        // connection was closed
+        // fermeture de connexion
         connection.onclose = function(event) {
-            console.log((new Date()) + ' Connection was closed');
+            console.log((new Date()) + ' la connexion a été fermée');
         };
 
-        // this function is called whenever the server sends some data
+        // fonction appelée lorsqu'on reçoit un message
         connection.onmessage = function(message) {
             try {
                 var data = JSON.parse(message.data);
             } catch (e) {
-                console.log('This doesn\'t look like a valid JSON or something else went wrong.');
+                console.log('ce message ne ressemble pas à un message de type JSON');
                 console.log(message);
                 return;
             }
             switch (data.type) {
-                // the server has created a room and returns the room-ID
-                case 'roomCreated':
-                    // set room
-                    roomId = data.payload;
+                default:
+                    console.log("message de type inconnu reçu: " + data.type);
+                    break;
 
-                    // fire event
-                    socketEvent.eventType = 'roomCreated';
-                    document.dispatchEvent(socketEvent);
-                    break;
-                    // other guy wants to join our room
-                case 'offer':
-                    console.log('offer received, answer will be created');
-                    try {
-                        otherSDP = data.payload;
-                    } catch (err) {
-                        console.log("data failed after offer received :" + err);
-                    }
-                    createAnswer();
-                    break;
-                    // we receive the answer
-                case 'answer':
-                    console.log('answer received, connection will be established');
-                    otherSDP = data.payload;
-                    peerConnection[nbreChannel].ondatachannel = gotReceiveChannel;
-                    handshakeDone();
-                    break;
-                    // we receive icecandidates from the other guy
-                case 'iceCandidate':
-                    setIceCandidates(data.payload);
-                    break;
             }
         };
     };
 
-    this.getRoomId = function() {
-        return roomId;
-    };
-
-    // this function tells the server to create a new room
-    this.createRoom = function() {
-        console.log("entrer dans creatRoom");
-        // create data-object
-        var data = {
-            type: 'createRoom',
-            payload: false
-        };
-        console.log("sortie de creatRoom--> on va envoyer des fuckings données");
-        // send data-object to server
-        return sendToServer(data);
-    };
-    // connect to a room
-    this.joinRoom = function(id) {
-        roomId = id;
-        createOffer();
-    };
-
-    // methode permettant d'envoyer des datas
     this.sendData = function() {
         var data = document.getElementById("dataChannelSend").value;
-        for (var i = 0; i < nbreChannel; i++) {
+        var i = 0;
+        var length = sendChannel.length;
+        while (i < length) {
             sendChannel[i].send(data);
+            i++;
         }
-        console.log('Sent data to ' + nbreChannel + ' channel: ' + data);
-        document.getElementById("dataChannelSend").value = "";
+        console.log("message envoyé à " + length + " channel");
     };
 
-    //methode permettant de recevoir des data
-    function receiveData(event) {
-        console.log('Received message: ' + event.data);
-        document.getElementById("dataChannelReceive").value += event.data;
-    }
-
-    // fonction permettant de recevoir le channel de data
-    function gotReceiveChannel(event) {
-        console.log('Receive Channel Callback');
-        receiveChannel[nbreChannel] = event.channel;
-        receiveChannel[nbreChannel].onmessage = receiveData;
-        nbreChannel++;
-    }
 }

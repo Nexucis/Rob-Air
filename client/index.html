@@ -40,6 +40,7 @@ and open the template in the editor.
                 <button id="joinChannel" style="width:330px">JoinDataChannel</button></br>
                 <button id="sendButton" style="width:330px">Send</button></br>
                 <button id="closeButton" style="width:330px">Stop</button></br>
+                <button id="rightButton" style="width:330px">Right</button></br>
                 <button id="closeMedia" style ="width:330px">CloseMedia</button></br>
                 <button id="openMedia" style="width: 330px">OpenMedia</button></br>
             </div>
@@ -65,10 +66,11 @@ and open the template in the editor.
         </section>
 
         <footer>
-            <p>Copyright HUSSON/BARBIER - Tous droits réservés<br />
+            <p>Copyright HUSSON/BARBIER - Tous droits réservés<br/>
                 <a href="https://github.com/Nexucis/Rob-Air/">https://github.com/Nexucis/Rob-Air/</a></p>
         </footer>
         <script type="text/javascript" src="js/client.js"></script>
+        <!--<script type="text/javascript" src="js/robair.js"></script>-->
         <script>
             var localStream;
             var localVideo = document.getElementById("localVideo");
@@ -85,19 +87,22 @@ and open the template in the editor.
 
             var ownVideo = document.getElementById('ownVideo');
             var otherVideo = document.getElementById('otherVideo');
-            //            creatChannel.disabled = false;
-            //            joinChannel.disabled = false;
-            //            sendButton.disabled = true;
-            //            closeButton.disabled = true;
+            // creatChannel.disabled = false;
+            // joinChannel.disabled = false;
+            // sendButton.disabled = true;
+            // closeButton.disabled = true;
 
             /*
-             * creation de l'objet webRTC
-             */
+* creation de l'objet webRTC
+*/
             var webRTC = new WebRTC();
+            //var robair = new Robair();
             /*
-             * connexion au serveur
-             */
+* connexion au serveur
+*/
             webRTC.connectToSocket('ws://localhost:6969');
+            //robair.connectToSocket('ws://localhost:8081/ws');
+
 
             document.addEventListener('socketEvent', function(socketEvent) {
                 switch (socketEvent.eventType) {
@@ -120,7 +125,7 @@ and open the template in the editor.
                     console.log("creatRoom");
                     webRTC.createRoom();
                 };
-                //var param = {audio:true,video:true};
+                var param = {audio:true,video:true};
                 webRTC.getMedia(null, success);
             });
 
@@ -145,6 +150,20 @@ and open the template in the editor.
                 e.preventDefault();
                 console.log('send data');
                 webRTC.sendData();
+            });
+
+            closeButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('send data');
+                //webRTC.sendData();
+                robair.say('s');
+            });
+
+            rightButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('send data');
+                //webRTC.sendData();
+                robair.say('right');
             });
 
             closeMedia.addEventListener('click', function(e) {
@@ -172,6 +191,4 @@ and open the template in the editor.
         </script>
 
     </body>
-
-
 </html>
