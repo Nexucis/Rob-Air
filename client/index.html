@@ -20,7 +20,7 @@ and open the template in the editor.
             </div>
         </header>
         <section>
-            <div id="myList">    
+            <div id="myList">
                 <h2>Choose your robot</h2>
                 <FORM>
                     <SELECT name="nom" size="4" style="width:130px">
@@ -42,6 +42,21 @@ and open the template in the editor.
                 <button id="closeButton" style="width:330px">Stop</button></br>
                 <button id="rightButton" style="width:330px">Right</button></br>
                 <button id="closeMedia" style ="width:330px">CloseMedia</button></br>
+            </div>
+
+            <div id="joystick">
+                <button class="top" id="topButton">top</button></br>
+                <button class="left" id="leftButton">left</button>
+                <button class="stop" id="stopButton">stop</button>
+                <button class="right" id="rightButton">right</button></br>
+                <button class="bottom" id="bottomButton">bottom</button>
+            </div>
+
+            <div id="voiceButtons">
+                <button class="presentation" id="presentationButton">Presentation</button>
+                <button class="merci" id="merciButton">Merci</button></br>
+                <button class="pardon" id="pardonButton">Pardon</button>
+                <button class="exterminate" id="exterminateButton">Exterminate</button></br>
             </div>
 
 
@@ -70,8 +85,9 @@ and open the template in the editor.
             <p>Copyright HUSSON/BARBIER - Tous droits réservés<br/>
                 <a href="https://github.com/Nexucis/Rob-Air/">https://github.com/Nexucis/Rob-Air/</a></p>
         </footer>
+        
         <script type="text/javascript" src="js/client.js"></script>
-        <!--<script type="text/javascript" src="js/robair.js"></script>-->
+        <script type="text/javascript" src="js/robair.js"></script>
         <script>
             var localStream;
             var localVideo = document.getElementById("localVideo");
@@ -96,12 +112,12 @@ and open the template in the editor.
 * creation de l'objet webRTC
 */
             var webRTC = new WebRTC();
-            //var robair = new Robair();
+            var robair = new Robair();
             /*
 * connexion au serveur
 */
             webRTC.connectToSocket('ws://localhost:6969');
-            //robair.connectToSocket('ws://localhost:8081/ws');
+            robair.connectToSocket('ws://localhost:8081/ws');
 
 
             document.addEventListener('socketEvent', function(socketEvent) {
@@ -178,7 +194,61 @@ and open the template in the editor.
                 }
                 webRTC.shutDownMedia();
             });
-        </script> 
+
+            topButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('send TOP');
+                webRTC.sendTop();
+            });
+
+            rightButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('send TOP');
+                webRTC.sendRight();
+            });
+
+            leftButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('send TOP');
+                webRTC.sendLeft();
+            });
+
+            bottomButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('send TOP');
+                webRTC.sendBottom();
+            });
+
+            stopButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('send TOP');
+                webRTC.sendStop();
+            });
+
+            presentationButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('send TOP');
+                webRTC.sendPresentation();
+            });
+
+            merciButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('send TOP');
+                webRTC.sendMerci();
+            });
+
+            exterminateButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('send TOP');
+                webRTC.sendExterminate();
+            });
+
+            pardonButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('send TOP');
+                webRTC.sendPardon();
+            });
+        </script>
 
     </body>
 </html>

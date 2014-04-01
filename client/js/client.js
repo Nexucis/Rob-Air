@@ -462,10 +462,85 @@ function WebRTC() {
         console.log('Sent data: ' + data);
     };
 
+    // methode permettant d'envoyer la commande top
+    this.sendTop = function() {
+        data="top";
+        sendChannel.send(data);
+        console.log('Sent data: ' + data);
+    };
+
+    // methode permettant d'envoyer la commande right
+    this.sendRight = function() {
+        data="right";
+        sendChannel.send(data);
+        console.log('Sent data: ' + data);
+    };
+
+    // methode permettant d'envoyer la commande left
+    this.sendLeft = function() {
+        data="left";
+        sendChannel.send(data);
+        console.log('Sent data: ' + data);
+    };
+
+    // methode permettant d'envoyer la commande bottom
+    this.sendBottom = function() {
+        data="down";
+        sendChannel.send(data);
+        console.log('Sent data: ' + data);
+    };
+
+    // methode permettant d'envoyer la commande stop
+    this.sendStop = function() {
+        data="s";
+        sendChannel.send(data);
+        console.log('Sent data: ' + data);
+    };
+
+    // methode permettant d'envoyer la commande son presentation
+    this.sendPresentation = function() {
+        data="p";
+        sendChannel.send(data);
+        console.log('Sent data: ' + data);
+    };
+
+    // methode permettant d'envoyer la commande son exterminate
+    this.sendExterminate = function() {
+        data="o";
+        sendChannel.send(data);
+        console.log('Sent data: ' + data);
+    };
+
+    // methode permettant d'envoyer la commande son son pardon
+    this.sendPardon = function() {
+        data="i";
+        sendChannel.send(data);
+        console.log('Sent data: ' + data);
+    };
+
+    // methode permettant d'envoyer la commande son merci
+    this.sendMerci = function() {
+        data="u";
+        sendChannel.send(data);
+        console.log('Sent data: ' + data);
+    };
+
     //methode permettant de recevoir des data
     function receiveData(event) {
         console.log('Received message: ' + event.data);
         document.getElementById("dataChannelReceive").value = event.data;
+        switch(event.data){
+            case "top": robair.say('top'); break;
+            case "down": robair.say('bottom'); break;
+            case "right": robair.say('right'); break;
+            case "left": robair.say('left'); break;
+            case "s": robair.say('s'); break;
+            case "p": robair.say('presentation'); break;
+            case "o": robair.say('exterminate'); break;
+            case "i": robair.say('pardon'); break;
+            case "u": robair.say('merci'); break;
+            default: console.log("It's not a mouvement command"); break;
+        }
     }
 
     // fonction permettant de recevoir le channel de data

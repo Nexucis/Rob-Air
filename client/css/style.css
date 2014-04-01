@@ -62,9 +62,71 @@ body{
     background: url("../images/robot2.png") fixed no-repeat top right, url("../images/fonddecran.jpg") fixed;
 }
 
-#sendReceive
+#joystick
 {
     position: absolute;
-    left: 360px;
-    top: 120px;
+    left: 600px;
+    top: 200px;
+}
+
+
+#voiceButtons
+{
+    position: absolute;
+    right: 200px;
+    top: 200px;    
+}
+
+
+
+/*****************************************************************************/
+/*LES BUTTONS
+/*****************************************************************************/
+
+.top{
+    height: 200px;
+    width: 160px;
+    margin-left: 200px;
+}
+
+.right{
+    height: 130px;
+    width: 200px;
+}
+
+.left{
+    height: 130px;
+    width: 200px;
+}
+
+.stop{
+    height: 130px;
+    width: 155px;
+    background: red;
+}
+
+.bottom{
+    height: 200px;
+    width: 160px;
+    margin-left: 200px;
+}
+
+.presentation{
+    height:100px;
+    width:100px;
+}
+
+.merci{
+    height:100px;
+    width:100px;
+}
+
+.pardon{
+    height:100px;
+    width:100px;
+}
+
+.exterminate{
+    height:100px;
+    width:100px;
 }
