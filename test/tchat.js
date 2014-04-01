@@ -30,9 +30,16 @@ function WebRTC() {
     var peerConnection = new Array(); // tableau de connexion. C'est là qu'on établira les connexions avec les autres navigateurs
     var iceServers = [];
     var peerConstraints = {optional: [{RtpDataChannels: true}]};// option lors de la création de connexion. Ici on choisit d'établir un channel de data
-    
-    var cptConnexion = 0;
 
+    var cptConnexion = 0;
+    var roomId = false; // id du channel que l'on souhaite rejoindre
+    var myId = false; // notre id que le serveur nous fournit
+    var howMany = false; // avant de faire des demandes de connexion aux autres clients lorsqu'on rejoint pour la 1er fois un serveur,
+    // on va chercher à savoir combien il y a de membre dans la room
+    var bitMap = new Array();
+
+    var socketEvent = document.createEvent('Event'); // permettra de déclancher des évenements en local sur la page html
+    socketEvent.initEvent('socketEvent', true, true);
     /*
      * initialisation de iceServers --> va permettre de récupérer son ip
      */
@@ -63,18 +70,113 @@ function WebRTC() {
      * ========== methode privee ========
      * ==================================
      */
-
-    // on souhaite rejoindre un channel, il faut donc pour cela construire notre question
-    var createAsk = function() {
-        peerConnection[cptConnexion] = new PeerConnection(iceServers, peerConstraints); // initialisation de la connexion
-        
+    // fonction permettant d'envoyer des donnés au serveur
+    var sendToServer = function(data) {
         try {
-            sendChannel[cptConnexion] = peerConnection.createDataChannel("sendDataChannel", {reliable: false});
-            console.log('Création d\'un data channe');
+            connection.send(JSON.stringify(data));
+            return true;
+        } catch (e) {
+            console.log('il n\'y a pas de connexion au serveur server.js');
+            return false;
+        }
+    };
+
+    var onSdpError = function(e) {
+        var message = JSON.stringify(e, null, '\t');
+
+        if (message.indexOf('RTP/SAVPF Expects at least 4 fields') !== -1) {
+            message = 'It seems that you are trying to interop RTP-datachannels with SCTP. It is not supported!';
+        }
+
+        console.error('onSdpError:', message);
+    };
+
+    var askHowMany = function() {
+        var data = {
+            type: 'howMany',
+            roomId: roomId
+        };
+        sendToServer(data);
+    };
+
+    var initBitMap = function() {
+        var i = 0;
+        while (i < howMany - 1) {
+            bitMap[i] = 0;
+            i++;
+        }
+    }
+
+    var indexOfBitMap = function() {
+        var i = 0;
+        while ((i < howMany - 1) && (bitMap[i] === 1)) {
+            i++;
+        }
+        if (i < howMany - 1) {
+            bitMap[i] = 1;
+            return i;
+        }
+        return -1;
+    };
+
+
+
+    // on souhaite rejoindre un channel, il faut donc pour cela construire notre question qu'on everra à une personne précise
+    var createAsk = function(idMember) {
+        peerConnection[cptConnexion] = new PeerConnection(iceServers, peerConstraints); // initialisation de la connexion
+
+        try {
+            // création du channel où on enverra des donnés
+            sendChannel[cptConnexion] = peerConnection[cptConnexion].createDataChannel("sendDataChannel", {reliable: false});
+            console.log('Création d\'un data channel');
         } catch (err) {
             console.log('erreur de création de data channel ' + err);
         }
 
+        peerConnection[cptConnexion].onicecandidate = function(icecandidate) {
+            console.log('icecandidate send to room ' + roomId);
+            var to = indexOfBitMap();
+            if (to !== -1) { // le iceCandidate peut être envoyé x fois on a aucun contrôle dessus. Par contre le sdp est envoyé une seule fois
+                var data = {
+                    type: 'iceCandidate',
+                    roomId: roomId,
+                    to: to,
+                    from: myId,
+                    payload: icecandidate
+                };
+                console.log("envoi du iceCandidate du client: " + myId +" vers le client :"+to);
+                sendToServer(data);
+            }
+            console.log("val cptConnexion:" + cptConnexion);
+
+        };
+
+        peerConnection[cptConnexion].createOffer(function(SDP) {
+            // set our SDP as local description
+            peerConnection[cptConnexion].setLocalDescription(SDP);
+
+            // send SDP to other guy
+            var data = {
+                type: 'sdp',
+                roomId: roomId,
+                to: idMember,
+                from: myId,
+                payload: SDP
+            };
+            console.log("envoi du sdp du client: " + myId);
+            sendToServer(data);
+            cptConnexion++;
+            createManyAsk(idMember+1);
+
+        }, onSdpError, null);
+    };
+
+    var createManyAsk = function(idMember) {
+        var i = idMember;
+        if (i < howMany - 1) { // on évite de s'envoyer à soit même le message, celui qui rejoint un channel est le dernier à avoir rejoint
+            createAsk(idMember);
+            i++;
+        }
     };
 
     // après avoir reçu des informations de l'utilisateur demandeur on fabrique notre réponse
@@ -86,6 +188,13 @@ function WebRTC() {
      * ========== methode publique ======
      * ==================================
      */
+//    this.createManyAsk = function() {
+//        console.log("cptConnexion: "+cptConnexion.toString());
+//        if (cptConnexion < howMany - 1) { // on évite de s'envoyer à soit même le message, celui qui rejoint un channel est le dernier à avoir rejoint
+//            createAsk(cptConnexion);
+//
+//        }
+//    };
 
     this.connectToSocket = function(wsUrl) {
         // ouverture de la connexion au serveur d'url wsUrl
@@ -117,6 +226,24 @@ function WebRTC() {
                 return;
             }
             switch (data.type) {
+                case 'getMyId':
+                    myId = data.id;
+                    console.log("id de client reçu: je suis le client: " + myId);
+                    break;
+                case 'creatRoom':
+                    roomId = data.roomId;
+                    console.log("room créé : " + roomId);
+                    break;
+                case 'joinRoom':
+                    myId = data.id;
+                    console.log("id de client reçu: je suis le client: " + myId);
+                    askHowMany();
+                    break
+                case 'howMany':
+                    howMany = data.taille;
+                    initBitMap();
+                    createManyAsk(0);
+                    break;
                 default:
                     console.log("message de type inconnu reçu: " + data.type);
                     break;
@@ -125,6 +252,39 @@ function WebRTC() {
         };
     };
 
+
+
+    //permet de demander son id que le serveur nous fournira en fontion du nbre de perso sur le channel 
+    this.joinRoom = function(room) {
+        var data = {
+            type: 'joinRoom',
+            roomId: room
+        };
+        roomId = room;
+        sendToServer(data);
+    };
+
+    //permet de demander l'id du channel
+    this.createRoom = function() {
+        var data = {
+            type: 'creatRoom'
+        };
+        sendToServer(data);
+    };
+
+    // on souhaite fermer la connexion avec le serveur
+    this.close = function() {
+        if (myId !== false) {
+            var data = {
+                type: 'close',
+                roomId: roomId,
+                id: myId
+            };
+            sendToServer(data);
+        }
+    };
+
+    //fonction pour envoyer des donnés dans des channels
     this.sendData = function() {
         var data = document.getElementById("dataChannelSend").value;
         var i = 0;
@@ -136,4 +296,23 @@ function WebRTC() {
         console.log("message envoyé à " + length + " channel");
     };
 
+    /*
+     * =====================
+     * ======= getter ======
+     * =====================
+     */
+
+//    this.getCptConnexion = function() {
+//        return cptConnexion;
+//    };
+
+    /*
+     * =====================
+     * ======= setter ======
+     * =====================
+     */
+
+//    this.setCptConnexion = function(newVal) {
+//        cptConnexion = newVal;
+//    };
 }

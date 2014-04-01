@@ -49,7 +49,7 @@ and open the template in the editor.
         <script type="text/javascript" src="tchat.js"></script>
         <script>
 
-    var creatChannelButton = document.getElementById("creatChannel");
+            var creatChannelButton = document.getElementById("creatChannel");
             var joinChannelButton = document.getElementById("joinChannel");
             var sendButton = document.getElementById("sendButton");
             var closeButton = document.getElementById("closeButton");
@@ -63,16 +63,30 @@ and open the template in the editor.
              */
             webRTC.connectToSocket('ws://localhost:6969');
 
-            creatChannelButton.addEventListener('click', function(e) {
+            document.addEventListener('socketEvent', function(socketEvent) {
+                switch (socketEvent.eventType) {
+//                    case 'askStartToSend':
+//                        console.log("une demande\"ask\" va etre envoyé --> incrementation + creation du ask suivant")
+//                        webRTC.setCptConnexion(webRTC.getCptConnexion+1);
+//                        webRTC.createManyAsk();
+//                        break;
+                }
+            });
 
+            creatChannelButton.addEventListener('click', function(e) {
+                webRTC.createRoom();
             });
 
             joinChannelButton.addEventListener('click', function(e) {
-
+                webRTC.joinRoom("Robair");
             });
 
             sendButton.addEventListener('click', function(e) {
 
+            });
+
+            closeButton.addEventListener('click', function(e) {
+                webRTC.close();
             });
 
             function KeyPress(e) {
