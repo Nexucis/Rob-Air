@@ -44,6 +44,20 @@ and open the template in the editor.
                 <button id="closeMedia" style ="width:330px">CloseMedia</button></br>
             </div>
 
+            <div id="webCam">
+                <div class="video-wrapper">
+                    <video id="otherVideo"></video>
+                    <video id="ownVideo" ></video>
+                </div></br></br>
+            </div>
+
+            <div id="voiceButtons">
+                <button class="presentation" id="presentationButton">Presentation</button></br>
+                <button class="merci" id="merciButton">Merci</button>
+                <button class="pardon" id="pardonButton">Pardon</button></br>
+                <button class="exterminate" id="exterminateButton">Exterminate</button></br>
+            </div>
+
             <div id="joystick">
                 <button class="top" id="topButton">top</button></br>
                 <button class="left" id="leftButton">left</button>
@@ -51,15 +65,6 @@ and open the template in the editor.
                 <button class="right" id="rightButton">right</button></br>
                 <button class="bottom" id="bottomButton">bottom</button>
             </div>
-
-            <div id="voiceButtons">
-                <button class="presentation" id="presentationButton">Presentation</button>
-                <button class="merci" id="merciButton">Merci</button></br>
-                <button class="pardon" id="pardonButton">Pardon</button>
-                <button class="exterminate" id="exterminateButton">Exterminate</button></br>
-            </div>
-
-
 
             </br></br></br></br>
 
@@ -72,12 +77,8 @@ and open the template in the editor.
                     <h2>Receive</h2>
                     <textarea id="dataChannelReceive" disabled></textarea>
                 </div>
-            </div>
-            <div class="video-wrapper">
-                <video id="otherVideo"></video>
-                <video id="ownVideo" ></video>
-            </div>
-
+            </div
+>
 
         </section>
 
@@ -203,49 +204,49 @@ and open the template in the editor.
 
             rightButton.addEventListener('click', function(e) {
                 e.preventDefault();
-                console.log('send TOP');
+                console.log('send RIGHT');
                 webRTC.sendRight();
             });
 
             leftButton.addEventListener('click', function(e) {
                 e.preventDefault();
-                console.log('send TOP');
+                console.log('send LEFT');
                 webRTC.sendLeft();
             });
 
             bottomButton.addEventListener('click', function(e) {
                 e.preventDefault();
-                console.log('send TOP');
+                console.log('send BOTTOM');
                 webRTC.sendBottom();
             });
 
             stopButton.addEventListener('click', function(e) {
                 e.preventDefault();
-                console.log('send TOP');
+                console.log('send STOP');
                 webRTC.sendStop();
             });
 
             presentationButton.addEventListener('click', function(e) {
                 e.preventDefault();
-                console.log('send TOP');
+                console.log('send PRESENTATION');
                 webRTC.sendPresentation();
             });
 
             merciButton.addEventListener('click', function(e) {
                 e.preventDefault();
-                console.log('send TOP');
+                console.log('send MERCI');
                 webRTC.sendMerci();
             });
 
             exterminateButton.addEventListener('click', function(e) {
                 e.preventDefault();
-                console.log('send TOP');
+                console.log('send EXTERMINATE');
                 webRTC.sendExterminate();
             });
 
             pardonButton.addEventListener('click', function(e) {
                 e.preventDefault();
-                console.log('send TOP');
+                console.log('send PARDON');
                 webRTC.sendPardon();
             });
         </script>

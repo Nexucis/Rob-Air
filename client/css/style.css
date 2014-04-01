@@ -60,21 +60,29 @@ head{
 
 body{
     background: url("../images/robot2.png") fixed no-repeat top right, url("../images/fonddecran.jpg") fixed;
+    width:100%;
+}
+
+#webCam
+{
+    position: fixed;
+    left: 20%;
+    top: 5%; 
 }
 
 #joystick
 {
-    position: absolute;
-    left: 600px;
-    top: 200px;
+    position: fixed;
+    left: 30%;
+    bottom: 5%;
 }
 
 
 #voiceButtons
 {
-    position: absolute;
-    right: 200px;
-    top: 200px;    
+    position: fixed;
+    right: 10%;
+    bottom: 5%;    
 }
 
 
@@ -84,49 +92,87 @@ body{
 /*****************************************************************************/
 
 .top{
-    height: 200px;
-    width: 160px;
-    margin-left: 200px;
+    height: 100px;
+    width: 80px;
+    margin-left: 100px;
 }
 
 .right{
-    height: 130px;
-    width: 200px;
+    height: 65px;
+    width: 100px;
 }
 
 .left{
-    height: 130px;
-    width: 200px;
+    height: 65px;
+    width: 100px;
 }
 
 .stop{
-    height: 130px;
-    width: 155px;
-    background: red;
+    height: 65px;
+    width: 77px;
+   background: red; 
+   -moz-border-radius: 80px; 
+   -webkit-border-radius: 80px; 
+   border-radius: 80px;
 }
 
 .bottom{
-    height: 200px;
-    width: 160px;
-    margin-left: 200px;
+    height: 100px;
+    width: 80px;
+    margin-left: 100px;
 }
 
 .presentation{
     height:100px;
     width:100px;
+    margin-left: 50px;
 }
 
 .merci{
     height:100px;
-    width:100px;
+    width:100px; 
+    background: pink;
+    margin: 3px 0 0 30px;
+    /* Rotate */
+    -webkit-transform: rotate(-45deg);
+    -moz-transform: rotate(-45deg);
+    -ms-transform: rotate(-45deg);
+    -o-transform: rotate(-45deg);
+    transform: rotate(-45deg);
+    /* Rotate Origin */
+    -webkit-transform-origin: 0 100%;
+    -moz-transform-origin: 0 100%;
+    -ms-transform-origin: 0 100%;
+    -o-transform-origin: 0 100%;
+    transform-origin: 0 100%;
 }
 
 .pardon{
     height:100px;
     width:100px;
+    background: red;
 }
 
 .exterminate{
     height:100px;
     width:100px;
+    margin-left: 50px;
+    background: blue;
+}
+
+/*****************************************************************************/
+/*VIDEO DESIGN
+/*****************************************************************************/
+video, img, #startbutton {
+    display: block;
+    float: left;
+    border: 10px solid #fff;
+    border-radius: 10px;
+}
+
+
+#container {
+    overflow: hidden;
+    width: 200px;
+    margin: 20px auto;
 }
