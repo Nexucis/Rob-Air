@@ -8,6 +8,7 @@ and open the template in the editor.
 <html>
     <head>
         <link rel="stylesheet" href="css/style.css">
+        <script type="text/javascript" src="server.js"></script>
         <title>Tchat WebRTC</title>
         <meta charset="UTF-8">
     </head>
@@ -101,7 +102,7 @@ and open the template in the editor.
             /*
              * connexion au serveur
              */
-            webRTC.connectToSocket('ws://localhost:6969');
+            webRTC.connectToSocket('ws://augustin.gkny.fr:6969');
             robair.connectToSocket('ws://localhost:8081/ws');
 
             document.addEventListener('socketEvent', function(socketEvent) {
