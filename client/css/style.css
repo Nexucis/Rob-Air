@@ -59,15 +59,23 @@ head{
 /*****************************************************************************/
 
 body{
-    background: url("../images/robot2.png") fixed no-repeat top right, url("../images/fonddecran.jpg") fixed;
+    background: url("../images/fondecran.jpg") 500px 0 fixed; /*url("../images/robot2.png") fixed no-repeat top right, url("../images/fondecranOP.png") fixed;*/
+    background-repeat: no-repeat;
     width:100%;
 }
 
 #webCam
 {
     position: fixed;
-    left: 20%;
-    top: 5%; 
+    right: 5%;
+    top: 42%; 
+}
+
+#webCam2
+{
+    position: fixed;
+    right: 35%;
+    top: 32%; 
 }
 
 #joystick
@@ -81,7 +89,7 @@ body{
 #voiceButtons
 {
     position: fixed;
-    right: 10%;
+    right: 19%;
     bottom: 5%;    
 }
 
@@ -123,14 +131,28 @@ body{
 }
 
 .presentation{
-    height:100px;
-    width:100px;
+    height:40px;
+    width:40px;
+    background: green;
     margin-left: 50px;
+    margin: 3px 0 0 30px;
+    /* Rotate */
+    -webkit-transform: rotate(-45deg);
+    -moz-transform: rotate(-45deg);
+    -ms-transform: rotate(-45deg);
+    -o-transform: rotate(-45deg);
+    transform: rotate(-45deg);
+    /* Rotate Origin */
+    -webkit-transform-origin: 0 100%;
+    -moz-transform-origin: 0 100%;
+    -ms-transform-origin: 0 100%;
+    -o-transform-origin: 0 100%;
+    transform-origin: 0 100%;
 }
 
 .merci{
-    height:100px;
-    width:100px; 
+    height:40px;
+    width:40px; 
     background: pink;
     margin: 3px 0 0 30px;
     /* Rotate */
@@ -148,25 +170,51 @@ body{
 }
 
 .pardon{
-    height:100px;
-    width:100px;
+    height:40px;
+    width:40px;
     background: red;
+    margin: 3px 0 0 30px;
+    /* Rotate */
+    -webkit-transform: rotate(-45deg);
+    -moz-transform: rotate(-45deg);
+    -ms-transform: rotate(-45deg);
+    -o-transform: rotate(-45deg);
+    transform: rotate(-45deg);
+    /* Rotate Origin */
+    -webkit-transform-origin: 0 100%;
+    -moz-transform-origin: 0 100%;
+    -ms-transform-origin: 0 100%;
+    -o-transform-origin: 0 100%;
+    transform-origin: 0 100%;
 }
 
 .exterminate{
-    height:100px;
-    width:100px;
+    height:40px;
+    width:40px;
     margin-left: 50px;
     background: blue;
+    margin: 3px 0 0 30px;
+    /* Rotate */
+    -webkit-transform: rotate(-45deg);
+    -moz-transform: rotate(-45deg);
+    -ms-transform: rotate(-45deg);
+    -o-transform: rotate(-45deg);
+    transform: rotate(-45deg);
+    /* Rotate Origin */
+    -webkit-transform-origin: 0 100%;
+    -moz-transform-origin: 0 100%;
+    -ms-transform-origin: 0 100%;
+    -o-transform-origin: 0 100%;
+    transform-origin: 0 100%;
 }
 
 /*****************************************************************************/
 /*VIDEO DESIGN
 /*****************************************************************************/
-video, img, #startbutton {
+video{
     display: block;
     float: left;
-    border: 10px solid #fff;
+    border: 10px solid black;
     border-radius: 10px;
 }
 
