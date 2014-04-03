@@ -27,11 +27,16 @@ function WebRTC() {
             || window.webkitRTCIceCandidate
             || window.mozRTCIceCandidate;
 
+    var otherCandidatesIndiceFrom = []; // buffer des indices des "from" des iceCandidates
+    var othersCandidates = []; // buffer des iceCandidates
+    var otherSDP = new Array(); // permettra de savoir si on doit ajouter le ice candidate ou le mettre dans un buffer en attendant le sdp
     var peerConnection = new Array(); // tableau de connexion. C'est là qu'on établira les connexions avec les autres navigateurs
     var iceServers = [];
     var peerConstraints = {optional: [{RtpDataChannels: true}]};// option lors de la création de connexion. Ici on choisit d'établir un channel de data
 
+    var cptAnswer = 0;
     var cptConnexion = 0;
+    var cptReceiveChannel = 0;
     var roomId = false; // id du channel que l'on souhaite rejoindre
     var myId = false; // notre id que le serveur nous fournit
     var howMany = false; // avant de faire des demandes de connexion aux autres clients lorsqu'on rejoint pour la 1er fois un serveur,
@@ -41,7 +46,7 @@ function WebRTC() {
     var socketEvent = document.createEvent('Event'); // permettra de déclancher des évenements en local sur la page html
     socketEvent.initEvent('socketEvent', true, true);
     /*
-     * initialisation de iceServers --> va permettre de récupérer son ip
+     * initialisation de iceServers --> va permettre de récupérer notre iceCandidate
      */
     var moz = !!navigator.mozGetUserMedia; // détermine si on est sur mozzila
     if (moz) {
@@ -70,6 +75,19 @@ function WebRTC() {
      * ========== methode privee ========
      * ==================================
      */
+
+    var receiveData = function(event) {
+        console.log('Received message: ' + event.data);
+        document.getElementById("dataChannelReceive").value = event.data;
+    };
+
+    // fonction permettant de recevoir le channel de data
+    var gotReceiveChannel = function(event) {
+        console.log('Receive Channel Callback');
+        receiveChannel[cptReceiveChannel] = event.channel;
+        receiveChannel[cptReceiveChannel].onmessage = receiveData;
+        cptReceiveChannel++;
+    };
     // fonction permettant d'envoyer des donnés au serveur
     var sendToServer = function(data) {
         try {
@@ -105,7 +123,7 @@ function WebRTC() {
             bitMap[i] = 0;
             i++;
         }
-    }
+    };
 
     var indexOfBitMap = function() {
         var i = 0;
@@ -119,6 +137,59 @@ function WebRTC() {
         return -1;
     };
 
+    // =======================================================
+    // ===== les methodes propres au protocol webrtc ====== 
+    // =======================================================
+
+    // create ice-candidate
+    var createRTCIceCandidate = function(candidate) {
+        var ice = new IceCandidate(candidate);
+        return ice;
+    };
+
+    var setIceCandidates = function(data) {
+        // push icecandidate to array if no SDP of other guys is available
+        var iceCandidate = data.payload;
+        var i = 0;
+        if (data.from < myId)
+            i = data.from;
+        else
+            i = data.from - 1;
+
+        console.log("val i dans setIceCandidates :" + i);
+        if (otherSDP[i] === null) {
+            othersCandidates.push(iceCandidate);
+            otherCandidatesIndiceFrom.push(i);
+            console.log("iceCandidate mis dans le buffer");
+        }
+        if (otherSDP[i] &&
+                iceCandidate.candidate &&
+                iceCandidate.candidate !== null){
+            peerConnection[i].addIceCandidate(createRTCIceCandidate(iceCandidate.candidate));
+            console.log("IceCandidate ajouée");
+        }
+    };
+
+    // create an session description object
+    var createRTCSessionDescription = function(sdp) {
+        var newSdp = new SessionDescription(sdp);
+        console.log("session description crée");
+        return newSdp;
+    };
+
+    // fin de l'échande de donné entre les navigateurs pour qu'ils puissent communiquer ensemble
+    // on ajoute donc les iceCandidate restant dans le buffer
+    var handShakeDone = function(data) {
+        var lengthBufferIce = othersCandidates.length;
+        peerConnection[data.from].setRemoteDescription(createRTCSessionDescription(data.payload));
+        // add other guy's ice-candidates to connection
+        for (var i = 0; i < lengthBufferIce; i++) {
+            if (othersCandidates[i].candidate) {
+                peerConnection[otherCandidatesIndiceFrom[i]].addIceCandidate(createRTCIceCandidate(othersCandidates[i].candidate));
+            }
+        }
+        console.log("connexion établit entre tous les navigateurs du channel");
+    };
 
 
     // on souhaite rejoindre un channel, il faut donc pour cela construire notre question qu'on everra à une personne précise
@@ -132,32 +203,37 @@ function WebRTC() {
         } catch (err) {
             console.log('erreur de création de data channel ' + err);
         }
-
+        // lorsque le iceServers nous envois notre iceCandidate on envoit alors cette donnée au client
         peerConnection[cptConnexion].onicecandidate = function(icecandidate) {
             console.log('icecandidate send to room ' + roomId);
             var to = indexOfBitMap();
-            if (to !== -1) { // le iceCandidate peut être envoyé x fois on a aucun contrôle dessus. Par contre le sdp est envoyé une seule fois
-                var data = {
-                    type: 'iceCandidate',
-                    roomId: roomId,
-                    to: to,
-                    from: myId,
-                    payload: icecandidate
-                };
-                console.log("envoi du iceCandidate du client: " + myId +" vers le client :"+to);
-                sendToServer(data);
+            if (to === -1) {
+                initBitMap();
+                to = indexOfBitMap(); // les iceCandidates sont envoyés par udp, il peut donc y avoir des pertes c'est pourquoi 
+                // la boite noire webrtc envoit plusieurs fois ce message
             }
+            //if (to !== -1) { // le iceCandidate peut être envoyé x fois on a aucun contrôle dessus. Par contre le sdp est envoyé une seule fois
+            var data = {
+                type: 'iceCandidate',
+                roomId: roomId,
+                to: to,
+                from: myId,
+                payload: icecandidate
+            };
+            console.log("envoi du iceCandidate du client: " + myId + " vers le client :" + to);
+            sendToServer(data);
+            //}
             console.log("val cptConnexion:" + cptConnexion);
 
         };
 
-        peerConnection[cptConnexion].createOffer(function(SDP) {
+        peerConnection[cptConnexion].createOffer(function(SDP) { // ce message est envoyé une seule fois --> passe par tcp ?
             // set our SDP as local description
             peerConnection[cptConnexion].setLocalDescription(SDP);
 
-            // send SDP to other guy
+            // on envoit la demande de connexion à un autre navigateur
             var data = {
-                type: 'sdp',
+                type: 'ask',
                 roomId: roomId,
                 to: idMember,
                 from: myId,
@@ -166,7 +242,7 @@ function WebRTC() {
             console.log("envoi du sdp du client: " + myId);
             sendToServer(data);
             cptConnexion++;
-            createManyAsk(idMember+1);
+            createManyAsk(idMember + 1);
 
         }, onSdpError, null);
     };
@@ -180,22 +256,72 @@ function WebRTC() {
     };
 
     // après avoir reçu des informations de l'utilisateur demandeur on fabrique notre réponse
-    var createAnswer = function() {
+    // la réponse est symétrique à la demande de connexion à quelques détails près notamment l'ajout du data channel reçu
+    var createAnswer = function(d) {
+        peerConnection[cptConnexion] = new PeerConnection(iceServers, peerConstraints);
 
+        //ajout de la description du navigateur du demandeur de connexion
+        try {
+            peerConnection[cptConnexion].setRemoteDescription(createRTCSessionDescription(d.payload));
+        } catch (err) {
+            console.log("erreur lors de l'ajout de la description d'une session " + err);
+            return;
+        }
+
+        // ajout du channel qu'on a reçu du demandeur de connexion
+        try {
+            peerConnection[cptConnexion].ondatachannel = gotReceiveChannel;
+            console.log('join dataChannel');
+        } catch (err) {
+            console.log('erreur lors de l\'ajout d\'un data channel: ' + err);
+        }
+
+        try {
+            // création du channel où on enverra des donnés
+            sendChannel[cptConnexion] = peerConnection[cptConnexion].createDataChannel("sendDataChannel", {reliable: false});
+            console.log('Création d\'un data channel dans la réponse');
+        } catch (err) {
+            console.log('erreur de création de data channel dans la réponse :' + err);
+        }
+
+        peerConnection[cptConnexion].onicecandidate = function(icecandidate) {
+            console.log('icecandidate send to room ' + roomId);
+            var data = {
+                type: 'iceCandidate',
+                roomId: roomId,
+                to: d.from,
+                from: myId,
+                payload: icecandidate
+            };
+            console.log("envoi du iceCandidate du client: " + myId + " vers le client :" + d.from);
+            sendToServer(data);
+        };
+
+        peerConnection[cptConnexion].createOffer(function(SDP) {
+            // set our SDP as local description
+            peerConnection[cptConnexion].setLocalDescription(SDP);
+
+            // on envoit la réponse de connexion à un autre navigateur
+            var data = {
+                type: 'answer',
+                roomId: roomId,
+                to: d.from,
+                from: myId,
+                payload: SDP
+            };
+            console.log("envoi du sdp du client: " + myId);
+            sendToServer(data);
+            console.log("val de cptConnexion dans sdp:" + cptConnexion);
+            cptConnexion++;
+
+        }, onSdpError, null);
+        console.log("val de cptConnexion dans fin answer :" + cptConnexion);
     };
 
     /*===================================
      * ========== methode publique ======
      * ==================================
      */
-//    this.createManyAsk = function() {
-//        console.log("cptConnexion: "+cptConnexion.toString());
-//        if (cptConnexion < howMany - 1) { // on évite de s'envoyer à soit même le message, celui qui rejoint un channel est le dernier à avoir rejoint
-//            createAsk(cptConnexion);
-//
-//        }
-//    };
-
     this.connectToSocket = function(wsUrl) {
         // ouverture de la connexion au serveur d'url wsUrl
         connection = new WebSocket(wsUrl);
@@ -244,6 +370,34 @@ function WebRTC() {
                     initBitMap();
                     createManyAsk(0);
                     break;
+                case 'ask':
+                    console.log("on a reçu une demande de connexion venant de :" + data.from + " la réponse va être produite...");
+                    if (data.from < myId) {
+                        otherSDP[data.from] = data.payload;
+                        console.log("je suis arrivé avant toi");
+                    }
+                    else {
+                        otherSDP[data.from - 1] = data.payload;
+                        console.log("je suis arrivé après toi");
+                    }
+                    console.log("taille de otherSDP: " + otherSDP.length);
+                    createAnswer(data);
+                    break;
+                case 'answer':
+                    console.log("réponse reçu venant de:" + data.from);
+                    otherSDP[data.from] = data.payload;
+                    cptAnswer++;
+                    peerConnection[data.from].ondatachannel = gotReceiveChannel;
+                    if (cptAnswer === myId)
+                        handShakeDone(data);
+                    else {
+                        peerConnection[data.from].setRemoteDescription(createRTCSessionDescription(otherSDP[data.from]));
+                    }
+                    break;
+                case 'iceCandidate':
+                    console.log("iceCandidate reçu venant de :" + data.from);
+                    setIceCandidates(data);
+                    break;
                 default:
                     console.log("message de type inconnu reçu: " + data.type);
                     break;
@@ -289,6 +443,7 @@ function WebRTC() {
         var data = document.getElementById("dataChannelSend").value;
         var i = 0;
         var length = sendChannel.length;
+        console.log("il y a " + length + " channels");
         while (i < length) {
             sendChannel[i].send(data);
             i++;

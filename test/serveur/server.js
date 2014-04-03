@@ -85,8 +85,12 @@ wsServer.on('request', function(request) {
                     console.log("envoi d'un icecandidate venant de :" + data.from + " et allant vers:" + data.to);
                     send(rooms[data.roomId][data.to], data);
                     break;
-                case 'sdp':
-                    console.log("envoi d'un sdp venant de :" + data.from + " et allant vers:" + data.to);
+                case 'ask':
+                    console.log("(ask)envoi d'un sdp venant de :" + data.from + " et allant vers:" + data.to);
+                    send(rooms[data.roomId][data.to], data);
+                    break;
+                case 'answer':
+                    console.log("(answer)envoi d'un sdp venant de :" + data.from + " et allant vers:" + data.to);
                     send(rooms[data.roomId][data.to], data);
                     break;
                 default:

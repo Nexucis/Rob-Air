@@ -142,6 +142,7 @@ function WebRTC() {
             }
         }
         // fire event
+	console.log("connexion établit");
         socketEvent.eventType = 'p2pConnectionReady';
         document.dispatchEvent(socketEvent);
     };
