@@ -49,7 +49,7 @@ function WebRTC() {
      * initialisation de iceServers --> va permettre de récupérer notre iceCandidate
      */
     var moz = !!navigator.mozGetUserMedia; // détermine si on est sur mozzila
-    if (moz) {
+//    if (moz) {
         iceServers.push({
             url: 'stun:23.21.150.121'
         });
@@ -57,17 +57,17 @@ function WebRTC() {
         iceServers.push({
             url: 'stun:stun.services.mozilla.com'
         });
-    }
-
-    if (!moz) {
-        iceServers.push({
-            url: 'stun:stun.l.google.com:19302'
-        });
-
-        iceServers.push({
-            url: 'stun:stun.anyfirewall.com:3478'
-        });
-    }
+//    }
+//
+//    if (!moz) {
+//        iceServers.push({
+//            url: 'stun:stun.l.google.com:19302'
+//        });
+//
+//        iceServers.push({
+//            url: 'stun:stun.anyfirewall.com:3478'
+//        });
+//    }
     iceServers = {
         iceServers: iceServers
     };
@@ -297,7 +297,7 @@ function WebRTC() {
             sendToServer(data);
         };
 
-        peerConnection[cptConnexion].createOffer(function(SDP) {
+        peerConnection[cptConnexion].createAnswer(function(SDP) {
             // set our SDP as local description
             peerConnection[cptConnexion].setLocalDescription(SDP);
 
