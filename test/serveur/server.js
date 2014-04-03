@@ -121,4 +121,4 @@ Array.prototype.unset = function(val) {
     if (index > -1) {
         this.splice(index, 1);
     }
-}
+};
