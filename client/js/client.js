@@ -84,6 +84,7 @@ function WebRTC() {
     iceServers = {
         iceServers: iceServers
     };
+
     /*
 * Private Methods
 */
@@ -430,6 +431,7 @@ function WebRTC() {
             console.log("getMedia failed " + err);
         });
     };
+
     
     // methode pour couper la camera localement
 
@@ -549,4 +551,22 @@ function WebRTC() {
         receiveChannel = event.channel;
         receiveChannel.onmessage = receiveData;
     }
+
+    //Then we must resize the video to good size.
+    ownVideo.addEventListener('canplay', function(ev){
+          width = screen.width*11/100;
+          height = screen.height*25/100;
+          console.log(height);
+          ownVideo.setAttribute('width', width);
+          ownVideo.setAttribute('height', height);
+        }, false);
+
+    //Then we must resize the video to good size.
+    otherVideo.addEventListener('canplay', function(ev){
+          width = screen.width*35/100;
+          height = screen.height*35/100;
+          console.log(height);
+          otherVideo.setAttribute('width', width);
+          otherVideo.setAttribute('height', height);
+        }, false);
 }

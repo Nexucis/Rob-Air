@@ -44,9 +44,9 @@ navigator.getMedia = ( navigator.getUserMedia ||
 
 
 //Then we must resize the video to good size.
-  video.addEventListener('canplay', function(ev){
+  ownVideo.addEventListener('canplay', function(ev){
     if (!streaming) {
-      height = video.videoHeight / (video.videoWidth/width);
+      height = video.videoHeight /10;//video.videoHeight / (video.videoWidth/width);
       video.setAttribute('width', width);
       video.setAttribute('height', height);
       canvas.setAttribute('width', width);
