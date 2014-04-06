@@ -25,7 +25,9 @@ and open the template in the editor.
                 <button id="creatChannel" style="width:330px">CreatDataChannel</button></br>
                 <button id="joinChannel" style="width:330px">JoinDataChannel</button></br>
                 <button id="sendButton" style="width:330px">Send</button></br>
-                <button id="closeButton" style="width:330px">Stop</button></br>
+                <button id="closeButton" style="width:330px">Stop</button></br></br>
+                
+                <button id ="openButton" style="width:330px">Open Media</button></br>
             </div>
 
             </br></br></br></br>
@@ -40,6 +42,10 @@ and open the template in the editor.
                     <textarea id="dataChannelReceive" disabled style="width:330px"></textarea>
                 </div>
             </div>
+            <div class="video-wrapper">
+                <video id="otherVideo"></video>
+                <video id="ownVideo" ></video>
+            </div>
         </section>
 
         <footer>
@@ -53,7 +59,8 @@ and open the template in the editor.
             var joinChannelButton = document.getElementById("joinChannel");
             var sendButton = document.getElementById("sendButton");
             var closeButton = document.getElementById("closeButton");
-
+            var openButton = document.getElementById("openButton");
+            var otherVideo = document.getElementById('otherVideo');
             /*
              * creation de l'objet webRTC
              */
@@ -70,6 +77,12 @@ and open the template in the editor.
 //                        webRTC.setCptConnexion(webRTC.getCptConnexion+1);
 //                        webRTC.createManyAsk();
 //                        break;
+                    case 'streamAdded':
+                        // we receive the video-stream of our partner
+                        // and play it on the video-element
+                        otherVideo.src = URL.createObjectURL(webRTC.getOtherStream());
+                        otherVideo.play();
+                        break;
                 }
             });
 
@@ -88,6 +101,10 @@ and open the template in the editor.
             closeButton.addEventListener('click', function(e) {
                 webRTC.close();
             });
+            
+            openButton.addEventListener('click',function(e){
+                webRTC.openMedia();
+            })
 
             function KeyPress(e) {
                 var code = (e.keyCode ? e.keyCode : e.which);

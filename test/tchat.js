@@ -43,6 +43,9 @@ function WebRTC() {
     // on va chercher à savoir combien il y a de membre dans la room
     var bitMap = new Array();
 
+    var myStream = false;
+    var otherStream = false;
+
     var socketEvent = document.createEvent('Event'); // permettra de déclancher des évenements en local sur la page html
     socketEvent.initEvent('socketEvent', true, true);
     /*
@@ -140,6 +143,28 @@ function WebRTC() {
     // =======================================================
     // ===== les methodes propres au protocol webrtc ====== 
     // =======================================================
+    
+    //permet d'ouvrir un stream video/son
+    var takeMedia = function(param, success) {
+        // param default 
+        if (!param) {
+            param = {audio: false, video: true};
+        }
+
+        navigator.getMedia = (navigator.getUserMedia ||
+                navigator.webkitGetUserMedia || // les fonctions préfixés par webkit sont utilisées par google chrome
+                navigator.mozGetUserMedia ||
+                navigator.msGetUserMedia);
+
+        navigator.getMedia(param, function(stream) {
+
+            myStream = stream;
+            success(myStream);
+
+        }, function(err) {
+            console.log("getMedia failed " + err);
+        });
+    };
 
     // create ice-candidate
     var createRTCIceCandidate = function(candidate) {
@@ -164,7 +189,7 @@ function WebRTC() {
         }
         if (otherSDP[i] &&
                 iceCandidate.candidate &&
-                iceCandidate.candidate !== null){
+                iceCandidate.candidate !== null) {
             peerConnection[i].addIceCandidate(createRTCIceCandidate(iceCandidate.candidate));
             console.log("IceCandidate ajouée");
         }
@@ -203,6 +228,15 @@ function WebRTC() {
         } catch (err) {
             console.log('erreur de création de data channel ' + err);
         }
+
+        peerConnection[cptConnexion].onaddstream = function(e) {
+            console.log('stream ajouté');
+            otherStream = e.stream;
+            // fire event
+            socketEvent.eventType = 'streamAdded';
+            document.dispatchEvent(socketEvent);
+        };
+
         // lorsque le iceServers nous envois notre iceCandidate on envoit alors cette donnée au client
         peerConnection[cptConnexion].onicecandidate = function(icecandidate) {
             console.log('icecandidate send to room ' + roomId);
@@ -283,6 +317,14 @@ function WebRTC() {
         } catch (err) {
             console.log('erreur de création de data channel dans la réponse :' + err);
         }
+
+        peerConnection[cptConnexion].onaddstream = function(e) {
+            console.log('stream added');
+            otherStream = e.stream;
+            // fire event
+            socketEvent.eventType = 'streamAdded';
+            document.dispatchEvent(socketEvent);
+        };
 
         peerConnection[cptConnexion].onicecandidate = function(icecandidate) {
             console.log('icecandidate send to room ' + roomId);
@@ -451,23 +493,33 @@ function WebRTC() {
         console.log("message envoyé à " + length + " channel");
     };
 
+
+
+    this.openMedia = function() {
+        
+        var success = function(myStream) {
+            var ownVideo = document.getElementById('ownVideo');
+            ownVideo.src = URL.createObjectURL(myStream);
+            ownVideo.play();
+            
+            var i = 0;
+            var length = peerConnection.length;
+            while(i<length){
+                peerConnection[i].addStream(myStream);
+                i++;
+            }
+        };
+        takeMedia(null, success);
+    };
+
     /*
-     * =====================
-     * ======= getter ======
-     * =====================
+     * ====================
+     * ====== getter ======
+     * ====================
      */
 
-//    this.getCptConnexion = function() {
-//        return cptConnexion;
-//    };
+    this.getOtherStream = function() {
+        return otherStream;
+    };
 
-    /*
-     * =====================
-     * ======= setter ======
-     * =====================
-     */
-
-//    this.setCptConnexion = function(newVal) {
-//        cptConnexion = newVal;
-//    };
 }
