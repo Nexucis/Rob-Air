@@ -56,7 +56,7 @@ and open the template in the editor.
                 <button class="presentation" id="presentationButton">P</button></br>
                 <button class="merci" id="merciButton">M</button>
                 <button class="pardon" id="pardonButton">P</button></br>
-                <button class="exterminate" id="exterminateButton">E</button></br>
+                <button class="r2d2" id="r2d2Button">E</button></br>
             </div>
 
             <div id="joystick">
@@ -238,10 +238,10 @@ and open the template in the editor.
                 webRTC.sendMerci();
             });
 
-            exterminateButton.addEventListener('click', function(e) {
+            r2d2Button.addEventListener('click', function(e) {
                 e.preventDefault();
-                console.log('send EXTERMINATE');
-                webRTC.sendExterminate();
+                console.log('send R2D2');
+                webRTC.sendR2D2();
             });
 
             pardonButton.addEventListener('click', function(e) {

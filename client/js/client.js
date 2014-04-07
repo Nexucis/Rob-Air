@@ -507,8 +507,8 @@ function WebRTC() {
     };
 
     // methode permettant d'envoyer la commande son exterminate
-    this.sendExterminate = function() {
-        data="o";
+    this.sendR2D2 = function() {
+        data="R2D2";
         sendChannel.send(data);
         console.log('Sent data: ' + data);
     };
@@ -538,7 +538,7 @@ function WebRTC() {
             case "left": robair.say('left'); break;
             case "s": robair.say('s'); break;
             case "p": robair.say('presentation'); break;
-            case "o": robair.say('exterminate'); break;
+            case "R2D2": robair.say('R2D2'); break;
             case "i": robair.say('pardon'); break;
             case "u": robair.say('merci'); break;
             default: console.log("It's not a mouvement command"); break;
