@@ -31,6 +31,7 @@ function WebRTC() {
     var othersCandidates = []; // buffer des iceCandidates
     var otherSDP = new Array(); // permettra de savoir si on doit ajouter le ice candidate ou le mettre dans un buffer en attendant le sdp
     var peerConnection = new Array(); // tableau de connexion. C'est là qu'on établira les connexions avec les autres navigateurs
+    var peerMedia = new Array();
     var iceServers = [];
     var peerConstraints = {optional: [{RtpDataChannels: true}]};// option lors de la création de connexion. Ici on choisit d'établir un channel de data
 
@@ -45,6 +46,10 @@ function WebRTC() {
 
     var myStream = false;
     var otherStream = false;
+
+    /*
+     * Initialisation 
+     */
 
     var socketEvent = document.createEvent('Event'); // permettra de déclancher des évenements en local sur la page html
     socketEvent.initEvent('socketEvent', true, true);
@@ -80,8 +85,42 @@ function WebRTC() {
      */
 
     var receiveData = function(event) {
-        console.log('Received message: ' + event.data);
-        document.getElementById("dataChannelReceive").value = event.data;
+        //console.log('Received message: ' + event.data);
+        try {
+            var data = JSON.parse(event.data);
+        } catch (e) {
+            console.log('ce message ne ressemble pas à un message de type JSON');
+            document.getElementById("dataChannelReceive").value = event.data;
+            return;
+        }
+
+        switch (data.type) {
+            case 'mediaOffer':
+                console.log("demande d'ajout de stream reçu");
+                createAnswerMedia(data);
+                break;
+            case 'mediaAnswer':
+                var i;
+                if (data.from < myId)
+                    i = data.from;
+                else
+                    i = data.from - 1;
+                peerMedia[i].setRemoteDescription(createRTCSessionDescription(data.payload));
+                console.log("ajout du sdp du client pour media:" + data.from);
+                break;
+            case 'iceCandidate':
+                console.log('ajout d\'iceCandidate');
+                setIceCandidatesMedia(data);
+                break;
+            case 'stream':
+                otherStream = data.payload;
+                socketEvent.eventType = 'streamAdded';
+                document.dispatchEvent(socketEvent);
+                break;
+            default :
+                console.log("message JSON de type inconnu :" + data.type);
+                break;
+        }
     };
 
     // fonction permettant de recevoir le channel de data
@@ -120,20 +159,20 @@ function WebRTC() {
         sendToServer(data);
     };
 
-    var initBitMap = function() {
+    var initBitMap = function(length) {
         var i = 0;
-        while (i < howMany - 1) {
+        while (i < length - 1) {
             bitMap[i] = 0;
             i++;
         }
     };
 
-    var indexOfBitMap = function() {
+    var indexOfBitMap = function(length) {
         var i = 0;
-        while ((i < howMany - 1) && (bitMap[i] === 1)) {
+        while ((i < length - 1) && (bitMap[i] === 1)) {
             i++;
         }
-        if (i < howMany - 1) {
+        if (i < length - 1) {
             bitMap[i] = 1;
             return i;
         }
@@ -143,7 +182,7 @@ function WebRTC() {
     // =======================================================
     // ===== les methodes propres au protocol webrtc ====== 
     // =======================================================
-    
+
     //permet d'ouvrir un stream video/son
     var takeMedia = function(param, success) {
         // param default 
@@ -171,6 +210,20 @@ function WebRTC() {
         var ice = new IceCandidate(candidate);
         return ice;
     };
+
+    var setIceCandidatesMedia = function(data) {
+        var iceCandidate = data.payload;
+        var i;
+        if (data.from < myId)
+            i = data.from;
+        else
+            i = data.from - 1;
+        if (iceCandidate.candidate && // arrive toujours après le otherSDP 
+                iceCandidate.candidate !== null) {
+            peerMedia[i].addIceCandidate(createRTCIceCandidate(iceCandidate.candidate));
+            console.log("IceCandidate pour media ajouée");
+        }
+    }
 
     var setIceCandidates = function(data) {
         // push icecandidate to array if no SDP of other guys is available
@@ -216,7 +269,6 @@ function WebRTC() {
         console.log("connexion établit entre tous les navigateurs du channel");
     };
 
-
     // on souhaite rejoindre un channel, il faut donc pour cela construire notre question qu'on everra à une personne précise
     var createAsk = function(idMember) {
         peerConnection[cptConnexion] = new PeerConnection(iceServers, peerConstraints); // initialisation de la connexion
@@ -229,6 +281,9 @@ function WebRTC() {
             console.log('erreur de création de data channel ' + err);
         }
 
+        if (myStream)
+            peerConnection[cptConnexion].addStream(myStream);
+
         peerConnection[cptConnexion].onaddstream = function(e) {
             console.log('stream ajouté');
             otherStream = e.stream;
@@ -240,10 +295,10 @@ function WebRTC() {
         // lorsque le iceServers nous envois notre iceCandidate on envoit alors cette donnée au client
         peerConnection[cptConnexion].onicecandidate = function(icecandidate) {
             console.log('icecandidate send to room ' + roomId);
-            var to = indexOfBitMap();
+            var to = indexOfBitMap(howMany);
             if (to === -1) {
                 initBitMap();
-                to = indexOfBitMap(); // les iceCandidates sont envoyés par udp, il peut donc y avoir des pertes c'est pourquoi 
+                to = indexOfBitMap(howMany); // les iceCandidates sont envoyés par udp, il peut donc y avoir des pertes c'est pourquoi 
                 // la boite noire webrtc envoit plusieurs fois ce message
             }
             //if (to !== -1) { // le iceCandidate peut être envoyé x fois on a aucun contrôle dessus. Par contre le sdp est envoyé une seule fois
@@ -318,6 +373,9 @@ function WebRTC() {
             console.log('erreur de création de data channel dans la réponse :' + err);
         }
 
+        if (myStream)
+            peerConnection[cptConnexion].addStream(myStream);
+
         peerConnection[cptConnexion].onaddstream = function(e) {
             console.log('stream added');
             otherStream = e.stream;
@@ -355,6 +413,118 @@ function WebRTC() {
             sendToServer(data);
             console.log("val de cptConnexion dans sdp:" + cptConnexion);
             cptConnexion++;
+
+        }, onSdpError, null);
+        console.log("val de cptConnexion dans fin answer :" + cptConnexion);
+    };
+
+    /*
+     *gestion de l'ouverture d'un flux de stream
+     */
+    var createOfferMedia = function(i, length) {
+
+        peerMedia[i] = new PeerConnection(iceServers, null); // initialisation de la connexion
+
+        peerMedia[i].addStream(myStream);
+
+        peerMedia[i].onaddstream = function(e) {
+            console.log('stream ajouté');
+            otherStream = e.stream;
+            // fire event
+            socketEvent.eventType = 'streamAdded';
+            document.dispatchEvent(socketEvent);
+        };
+
+        // lorsque le iceServers nous envois notre iceCandidate on envoit alors cette donnée au client
+        peerMedia[i].onicecandidate = function(icecandidate) {
+            console.log('icecandidate send to room ' + roomId);
+            var to = indexOfBitMap(length+1);
+            if (to === -1) {
+                initBitMap(length+1);
+                to = indexOfBitMap(length+1); // les iceCandidates sont envoyés par udp, il peut donc y avoir des pertes c'est pourquoi 
+                // la boite noire webrtc envoit plusieurs fois ce message
+            }
+            //if (to !== -1) { // le iceCandidate peut être envoyé x fois on a aucun contrôle dessus. Par contre le sdp est envoyé une seule fois
+            var data = {
+                type: 'iceCandidate',
+                to: to,
+                from: myId,
+                payload: icecandidate
+            };
+            console.log("envoi du iceCandidate du client: " + myId + " vers le client :" + to);
+            sendChannel[i].send(JSON.stringify(data));
+            //}
+
+        };
+
+        peerMedia[i].createOffer(function(SDP) { // ce message est envoyé une seule fois --> passe par tcp ?
+            // set our SDP as local description
+            peerMedia[i].setLocalDescription(SDP);
+
+            // on envoit la demande de connexion à un autre navigateur
+            var data = {
+                type: 'mediaOffer',
+                to: i,
+                from: myId,
+                payload: SDP
+            };
+            console.log("envoi du sdp du client: " + myId);
+            sendChannel[i].send(JSON.stringify(data));
+            if (i + 1 < length)
+                createOfferMedia(i + 1, length);
+        }, onSdpError, null);
+    };
+
+    var createAnswerMedia = function(data) {
+        var i;
+        if(data.from<myId)
+            i = data.from;
+        else i = data.from-1;
+        peerMedia[i] = new PeerConnection(iceServers, null);
+
+        //ajout de la description du navigateur du demandeur de connexion
+        try {
+            peerMedia[i].setRemoteDescription(createRTCSessionDescription(data.payload));
+        } catch (err) {
+            console.log("erreur lors de l'ajout de la description d'une session " + err);
+            return;
+        }
+        if (myStream)
+            peerMedia[i].addStream(myStream);
+
+        peerMedia[i].onaddstream = function(e) {
+            console.log('stream added');
+            otherStream = e.stream;
+            // fire event
+            socketEvent.eventType = 'streamAdded';
+            document.dispatchEvent(socketEvent);
+        };
+
+        peerMedia[i].onicecandidate = function(icecandidate) {
+            console.log('icecandidate send to room ' + roomId);
+            var d = {
+                type: 'iceCandidate',
+                to: i,
+                from: myId,
+                payload: icecandidate
+            };
+            console.log("envoi du iceCandidate du client pour media: " + myId + " vers le client :" + data.from);
+            sendChannel[i].send(JSON.stringify(d));
+        };
+
+        peerMedia[i].createAnswer(function(SDP) {
+            // set our SDP as local description
+            peerMedia[i].setLocalDescription(SDP);
+
+            // on envoit la réponse de connexion à un autre navigateur
+            var d = {
+                type: 'mediaAnswer',
+                to: i,
+                from: myId,
+                payload: SDP
+            };
+            console.log("envoi du sdp du client pour media: " + myId);
+            sendChannel[i].send(JSON.stringify(d));;
 
         }, onSdpError, null);
         console.log("val de cptConnexion dans fin answer :" + cptConnexion);
@@ -409,7 +579,7 @@ function WebRTC() {
                     break
                 case 'howMany':
                     howMany = data.taille;
-                    initBitMap();
+                    initBitMap(howMany);
                     createManyAsk(0);
                     break;
                 case 'ask':
@@ -437,7 +607,7 @@ function WebRTC() {
                     }
                     break;
                 case 'iceCandidate':
-                    console.log("iceCandidate reçu venant de :" + data.from);
+                    console.log("iceCandidate reçu venant de :" + data.from + "iceCandidate: " + data.payload);
                     setIceCandidates(data);
                     break;
                 default:
@@ -496,18 +666,16 @@ function WebRTC() {
 
 
     this.openMedia = function() {
-        
+
         var success = function(myStream) {
             var ownVideo = document.getElementById('ownVideo');
             ownVideo.src = URL.createObjectURL(myStream);
             ownVideo.play();
-            
+
             var i = 0;
             var length = peerConnection.length;
-            while(i<length){
-                peerConnection[i].addStream(myStream);
-                i++;
-            }
+
+            createOfferMedia(0, length);
         };
         takeMedia(null, success);
     };
