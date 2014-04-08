@@ -41,17 +41,19 @@ and open the template in the editor.
                 <button id="joinChannel" style="width:330px">JoinDataChannel</button></br>
                 <button id="sendButton" style="width:330px">Send</button></br>
                 <button id="closeButton" style="width:330px">Stop</button></br>
-                <button id="closeMedia" style ="width:330px">CloseMedia</button></br>
-                <button id="openMedia" style="width: 330px">OpenMedia</button></br>
+
+                <button id ="openButton" style="width:330px">Open Media</button></br>
+                <button id ="shutButton" style="width:330px">Shut Media</button></br>
             </div>
 
-            <div id="webCam">
-                <video id="ownVideo"></video>
+            <div class="videoRobert">
+                <div id="webCam">
+                    <video id="ownVideo"></video>
+                </div>
+                <div id="webCam2">
+                    <video id="otherVideo" ></video>
+                </div>
             </div>
-            <div id="webCam2">
-                <video id="otherVideo" ></video>
-            </div>
-                       
 
             <div id="voiceButtons">
                 <button class="presentation" id="presentationButton">P</button></br>
@@ -80,6 +82,7 @@ and open the template in the editor.
                     <textarea id="dataChannelReceive" disabled></textarea>
                 </div>
             </div>
+            <div class="video-wrapper"></div>
 
         </section>
 
@@ -87,9 +90,12 @@ and open the template in the editor.
             <p>Copyright HUSSON/BARBIER - Tous droits réservés<br/>
                 <a href="https://github.com/Nexucis/Rob-Air/">https://github.com/Nexucis/Rob-Air/</a></p>
         </footer>
-        
-        <script type="text/javascript" src="js/client.js"></script>
+
+
+        <script type="text/javascript" src="js/webRTC.js"></script>
         <script type="text/javascript" src="js/robair.js"></script>
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js"></script>
+
         <script>
             var localStream;
             var localVideo = document.getElementById("localVideo");
@@ -101,111 +107,101 @@ and open the template in the editor.
             var joinChannelButton = document.getElementById("joinChannel");
             var sendButton = document.getElementById("sendButton");
             var closeButton = document.getElementById("closeButton");
-            var closeMedia = document.getElementById("closeMedia");
-            var openMedia = document.getElementById("openMedia");
+
+            var openButton = document.getElementById("openButton");
+            var shutButton = document.getElementById("shutButton");
 
             var ownVideo = document.getElementById('ownVideo');
             var otherVideo = document.getElementById('otherVideo');
-            // creatChannel.disabled = false;
-            // joinChannel.disabled = false;
-            // sendButton.disabled = true;
-            // closeButton.disabled = true;
 
+            creatChannel.disabled = false;
+            joinChannel.disabled = false;
+            sendButton.disabled = true;
+            closeButton.disabled = true;
+            shutButton.disabled = true;
+            openButton.disabled = true;
             /*
-* creation de l'objet webRTC
-*/
+             * creation de l'objet webRTC
+             */
             var webRTC = new WebRTC();
             var robair = new Robair();
             /*
-* connexion au serveur
-*/
+             * connexion au serveur
+             */
             webRTC.connectToSocket('ws://localhost:6969');
             robair.connectToSocket('ws://localhost:8081/ws');
 
 
             document.addEventListener('socketEvent', function(socketEvent) {
                 switch (socketEvent.eventType) {
+                    case 'channelAdd':
+                        sendButton.disabled = false;
+                        closeButton.disabled = false;
+                        openButton.disabled = false;
+                        break;
                     case 'streamAdded':
                         // we receive the video-stream of our partner
                         // and play it on the video-element
-                        otherVideo.src = URL.createObjectURL(webRTC.getOtherStream());
-                        otherVideo.play();
+                        var $video = $('.video-wrapper');
+                        var $videoRobert = $('.videoRobert video:last');
+                        var nbreVideo = $video.find('video').length;
+                        var $otherVideo;
+                        var otherStream = webRTC.getOtherStream();
+                        var length = otherStream.length;
+                        console.log("length:" + length);
+                        var i = 0;
+                        var j = 0;
+                        while ((i < length) && (!otherStream[i]))
+                            i++;
+
+                        $videoRobert[0].src = URL.createObjectURL(otherStream[i]);
+                        $videoRobert[0].play();
+                        i++;
+                        while (i < length) {
+                            if (j >= nbreVideo) {
+                                $video.append('<video></video>');
+                                $otherVideo = $video.find('video:last');
+                            }
+                            else {
+                                $otherVideo = $video.find('video:eq(' + j + ')');
+                            }
+                            if (otherStream[i]) {
+                                $otherVideo[0].src = URL.createObjectURL(otherStream[i]);
+                                $otherVideo[0].play();
+                            }
+                            j++;
+                            i++;
+                        }
                         break;
                 }
             });
 
             creatChannelButton.addEventListener('click', function(e) {
-                e.preventDefault();
-                // private methode
-                var success = function(myStream) {
-                    ownVideo.src = URL.createObjectURL(myStream);
-                    ownVideo.play();
-                    // create a room
-                    console.log("creatRoom");
-                    webRTC.createRoom();
-                };
-                var param = {audio:true,video:true};
-                webRTC.getMedia(null, success);
+                webRTC.createRoom();
             });
 
             joinChannelButton.addEventListener('click', function(e) {
-                e.preventDefault();
-                console.log("join room");
-                //webRTC.joinRoom("bigueRobAir");
-                // get media-stream
-                var success = function(myStream) {
-
-                    ownVideo.src = URL.createObjectURL(myStream);
-                    ownVideo.play();
-                    // join a room
-                    webRTC.joinRoom("bigueRobAir");
-                    //WebRTC.joinRoom(roomidInput.value);
-                };
-                //var param = {audio:true,video:true};
-                webRTC.getMedia(null, success);
+                webRTC.joinRoom("Robair");
             });
 
             sendButton.addEventListener('click', function(e) {
-                e.preventDefault();
-                console.log('send data');
                 webRTC.sendData();
             });
 
             closeButton.addEventListener('click', function(e) {
-                e.preventDefault();
-                console.log('send data');
-                //webRTC.sendData();
-                robair.say('s');
+                webRTC.close();
             });
 
-            rightButton.addEventListener('click', function(e) {
-                e.preventDefault();
-                console.log('send data');
-                //webRTC.sendData();
-                robair.say('right');
+            openButton.addEventListener('click', function(e) {
+                webRTC.openMedia();
+                openButton.disabled = true;
+                shutButton.disabled = false;
             });
 
-            closeMedia.addEventListener('click', function(e) {
-                e.preventDefault();
-                console.log('close camera');
-                // permet de supprimer sur le .html le flux video
-                if (ownVideo) {
-                    ownVideo.onerror = null;
-                    ownVideo.pause();
-                    ownVideo.src = undefined;
-                }
+            shutButton.addEventListener('click', function(e) {
                 webRTC.shutDownMedia();
-            });
-
-            openMedia.addEventListener('click', function(e) {
-                e.preventDefault();
-                console.log('open camera');
-                ownVideo = document.getElementById('ownVideo');
-                var success = function(myStream) {
-                    ownVideo.src = URL.createObjectURL(myStream);
-                    ownVideo.play();
-                };
-                webRTC.openMedia(success);
+                openButton.disabled = false;
+                shutButton.disabled = true;
             });
 
             topButton.addEventListener('click', function(e) {
@@ -261,6 +257,15 @@ and open the template in the editor.
                 console.log('send PARDON');
                 webRTC.sendPardon();
             });
+
+            function KeyPress(e) {
+                var code = (e.keyCode ? e.keyCode : e.which);
+                if (code == 13) { // appuie sur la touche entrer
+                    console.log('message envoyé');
+                    webRTC.sendData();
+                }
+            }
+            document.onkeypress = KeyPress;
         </script>
     </body>
 </html>

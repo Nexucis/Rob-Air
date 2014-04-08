@@ -143,6 +143,7 @@ function WebRTC() {
             }
         }
         // fire event
+	console.log("connexion établit");
         socketEvent.eventType = 'p2pConnectionReady';
         document.dispatchEvent(socketEvent);
     };
@@ -433,6 +434,11 @@ function WebRTC() {
     };
 
     
+    this.openMedia = function(success){
+        this.getMedia(null,success);
+        peerConnection.addStream(myStream);
+    };
+    
     // methode pour couper la camera localement
 
     this.shutDownMedia = function() {
@@ -448,9 +454,9 @@ function WebRTC() {
                 myStream.stop();
             }
             myStream.onended = null;
-            myStream = null;
+            myStream.src = null;
         }
-    }
+    };
 
     // get the other guys media stream
     this.getOtherStream = function() {
