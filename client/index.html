@@ -42,6 +42,7 @@ and open the template in the editor.
                 <button id="sendButton" style="width:330px">Send</button></br>
                 <button id="closeButton" style="width:330px">Stop</button></br>
                 <button id="closeMedia" style ="width:330px">CloseMedia</button></br>
+                <button id="openMedia" style="width: 330px">OpenMedia</button></br>
             </div>
 
             <div id="webCam">
@@ -101,6 +102,7 @@ and open the template in the editor.
             var sendButton = document.getElementById("sendButton");
             var closeButton = document.getElementById("closeButton");
             var closeMedia = document.getElementById("closeMedia");
+            var openMedia = document.getElementById("openMedia");
 
             var ownVideo = document.getElementById('ownVideo');
             var otherVideo = document.getElementById('otherVideo');
@@ -191,9 +193,19 @@ and open the template in the editor.
                     ownVideo.onerror = null;
                     ownVideo.pause();
                     ownVideo.src = undefined;
-                    ownVideo = null;
                 }
                 webRTC.shutDownMedia();
+            });
+
+            openMedia.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('open camera');
+                ownVideo = document.getElementById('ownVideo');
+                var success = function(myStream) {
+                    ownVideo.src = URL.createObjectURL(myStream);
+                    ownVideo.play();
+                };
+                webRTC.openMedia(success);
             });
 
             topButton.addEventListener('click', function(e) {
