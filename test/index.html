@@ -26,8 +26,9 @@ and open the template in the editor.
                 <button id="joinChannel" style="width:330px">JoinDataChannel</button></br>
                 <button id="sendButton" style="width:330px">Send</button></br>
                 <button id="closeButton" style="width:330px">Stop</button></br></br>
-                
+
                 <button id ="openButton" style="width:330px">Open Media</button></br>
+                <button id ="shutButton" style="width:330px">Shut Media</button></br>
             </div>
 
             </br></br></br></br>
@@ -43,7 +44,6 @@ and open the template in the editor.
                 </div>
             </div>
             <div class="video-wrapper">
-                <video id="otherVideo"></video>
                 <video id="ownVideo" ></video>
             </div>
         </section>
@@ -53,14 +53,24 @@ and open the template in the editor.
                 <a href="https://github.com/Nexucis/Rob-Air/">gitHub</a></p>
         </footer>
         <script type="text/javascript" src="tchat.js"></script>
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js"></script>
         <script>
 
             var creatChannelButton = document.getElementById("creatChannel");
             var joinChannelButton = document.getElementById("joinChannel");
             var sendButton = document.getElementById("sendButton");
             var closeButton = document.getElementById("closeButton");
+
             var openButton = document.getElementById("openButton");
-            var otherVideo = document.getElementById('otherVideo');
+            var shutButton = document.getElementById("shutButton");
+
+            creatChannel.disabled = false;
+            joinChannel.disabled = false;
+            sendButton.disabled = true;
+            closeButton.disabled = true;
+            shutButton.disabled = true;
+            openButton.disabled = true;
+
             /*
              * creation de l'objet webRTC
              */
@@ -77,11 +87,38 @@ and open the template in the editor.
 //                        webRTC.setCptConnexion(webRTC.getCptConnexion+1);
 //                        webRTC.createManyAsk();
 //                        break;
+                    case 'channelAdd':
+                        sendButton.disabled = false;
+                        closeButton.disabled = false;
+                        shutButton.disabled = false;
+                        openButton.disabled = false;
+                        break;
                     case 'streamAdded':
                         // we receive the video-stream of our partner
                         // and play it on the video-element
-                        otherVideo.src = URL.createObjectURL(webRTC.getOtherStream());
-                        otherVideo.play();
+                        var $video = $('.video-wrapper');
+                        var nbreVideo = $video.find('video').length - 1;
+                        var $otherVideo;
+                        var otherStream = webRTC.getOtherStream();
+                        var length = otherStream.length;
+                        console.log("length:" + length);
+                        var i = 0;
+                        var j = 1
+                        while (i < length) {
+                            if (j > nbreVideo) {
+                                $video.append('<video></video>');
+                                $otherVideo = $video.find('video:last');
+                            }
+                            else{
+                                $otherVideo = $video.find('video:eq('+j+')');
+                            }
+                            if (otherStream[i]) {
+                                $otherVideo[0].src = URL.createObjectURL(otherStream[i]);
+                                $otherVideo[0].play();
+                            }
+                            j++;
+                            i++;
+                        }
                         break;
                 }
             });
@@ -101,10 +138,14 @@ and open the template in the editor.
             closeButton.addEventListener('click', function(e) {
                 webRTC.close();
             });
-            
-            openButton.addEventListener('click',function(e){
+
+            openButton.addEventListener('click', function(e) {
                 webRTC.openMedia();
-            })
+            });
+
+            shutButton.addEventListener('click', function(e) {
+                webRTC.shutDownMedia();
+            });
 
             function KeyPress(e) {
                 var code = (e.keyCode ? e.keyCode : e.which);
