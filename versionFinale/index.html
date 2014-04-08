@@ -8,27 +8,66 @@ and open the template in the editor.
 <html>
     <head>
         <link rel="stylesheet" href="css/style.css">
-        <title>Tchat WebRTC</title>
+        <title>Client WebRTC</title>
         <meta charset="UTF-8">
+
     </head>
 
     <body>
         <header>
             <div id="titre_principal">
                 <h1>WEBRTC</h1>
-                <h2>tentative de tchat</h2>
+                <h2>webRTC client</h2>
             </div>
         </header>
         <section>
-            <h2>Click on button bollow</h2>
+            <div id="myList">
+                <h2>Choose your robot</h2>
+                <FORM>
+                    <SELECT name="nom" size="4" style="width:130px">
+                        <OPTION SELECTED>Robair1
+                        <OPTION>Robair2
+                        <OPTION>Robair3
+                        <OPTION>Robair4
+                        <OPTION>Robair5
+                    </SELECT>
+                </FORM>
+            </div>
+            </br>
+
+            <h2>Click on button below</h2>
             <div class="myButtons" id="buttons">
                 <button id="creatChannel" style="width:330px">CreatDataChannel</button></br>
                 <button id="joinChannel" style="width:330px">JoinDataChannel</button></br>
                 <button id="sendButton" style="width:330px">Send</button></br>
-                <button id="closeButton" style="width:330px">Stop</button></br></br>
+                <button id="closeButton" style="width:330px">Stop</button></br>
 
                 <button id ="openButton" style="width:330px">Open Media</button></br>
                 <button id ="shutButton" style="width:330px">Shut Media</button></br>
+            </div>
+
+            <div class="videoRobert">
+                <div id="webCam">
+                    <video id="ownVideo"></video>
+                </div>
+                <div id="webCam2">
+                    <video id="otherVideo" ></video>
+                </div>
+            </div>
+
+            <div id="voiceButtons">
+                <button class="presentation" id="presentationButton">P</button></br>
+                <button class="merci" id="merciButton">M</button>
+                <button class="pardon" id="pardonButton">P</button></br>
+                <button class="r2d2" id="r2d2Button">E</button></br>
+            </div>
+
+            <div id="joystick">
+                <button class="top" id="topButton">top</button></br>
+                <button class="left" id="leftButton">left</button>
+                <button class="stop" id="stopButton">stop</button>
+                <button class="right" id="rightButton">right</button></br>
+                <button class="bottom" id="bottomButton">bottom</button>
             </div>
 
             </br></br></br></br>
@@ -36,25 +75,33 @@ and open the template in the editor.
             <div id="sendReceive">
                 <div id="send">
                     <h2>Send</h2>
-                    <textarea id="dataChannelSend" style="width:330px"></textarea>
+                    <textarea id="dataChannelSend"></textarea>
                 </div>
                 <div id="receive">
                     <h2>Receive</h2>
-                    <textarea id="dataChannelReceive" disabled style="width:330px"></textarea>
+                    <textarea id="dataChannelReceive" disabled></textarea>
                 </div>
             </div>
-            <div class="video-wrapper">
-                <video id="ownVideo" ></video>
-            </div>
+            <div class="video-wrapper"></div>
+
         </section>
 
         <footer>
-            <p>Copyright HUSSON/BARBIER - Tous droits réservés<br />
-                <a href="https://github.com/Nexucis/Rob-Air/">gitHub</a></p>
+            <p>Copyright HUSSON/BARBIER - Tous droits réservés<br/>
+                <a href="https://github.com/Nexucis/Rob-Air/">https://github.com/Nexucis/Rob-Air/</a></p>
         </footer>
-        <script type="text/javascript" src="tchat.js"></script>
+
+
+        <script type="text/javascript" src="js/webRTC.js"></script>
+        <script type="text/javascript" src="js/robair.js"></script>
         <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js"></script>
+
         <script>
+            var localStream;
+            var localVideo = document.getElementById("localVideo");
+            var localPeerConnection, remotePeerConnection;
+            var sendChannel, receiveChannel;
+            var option;
 
             var creatChannelButton = document.getElementById("creatChannel");
             var joinChannelButton = document.getElementById("joinChannel");
@@ -64,21 +111,26 @@ and open the template in the editor.
             var openButton = document.getElementById("openButton");
             var shutButton = document.getElementById("shutButton");
 
+            var ownVideo = document.getElementById('ownVideo');
+            var otherVideo = document.getElementById('otherVideo');
+
             creatChannel.disabled = false;
             joinChannel.disabled = false;
             sendButton.disabled = true;
             closeButton.disabled = true;
             shutButton.disabled = true;
             openButton.disabled = true;
-
             /*
              * creation de l'objet webRTC
              */
             var webRTC = new WebRTC();
+            var robair = new Robair();
             /*
              * connexion au serveur
              */
             webRTC.connectToSocket('ws://localhost:6969');
+            robair.connectToSocket('ws://localhost:8081/ws');
+
 
             document.addEventListener('socketEvent', function(socketEvent) {
                 switch (socketEvent.eventType) {
@@ -91,15 +143,22 @@ and open the template in the editor.
                         // we receive the video-stream of our partner
                         // and play it on the video-element
                         var $video = $('.video-wrapper');
-                        var nbreVideo = $video.find('video').length - 1;
+                        var $videoRobert = $('.videoRobert video:last');
+                        var nbreVideo = $video.find('video').length;
                         var $otherVideo;
                         var otherStream = webRTC.getOtherStream();
                         var length = otherStream.length;
                         console.log("length:" + length);
                         var i = 0;
-                        var j = 1;
+                        var j = 0;
+                        while ((i < length) && (!otherStream[i]))
+                            i++;
+
+                        $videoRobert[0].src = URL.createObjectURL(otherStream[i]);
+                        $videoRobert[0].play();
+                        i++;
                         while (i < length) {
-                            if (j > nbreVideo) {
+                            if (j >= nbreVideo) {
                                 $video.append('<video></video>');
                                 $otherVideo = $video.find('video:last');
                             }
@@ -145,6 +204,60 @@ and open the template in the editor.
                 shutButton.disabled = true;
             });
 
+            topButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('send TOP');
+                webRTC.sendTop();
+            });
+
+            rightButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('send RIGHT');
+                webRTC.sendRight();
+            });
+
+            leftButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('send LEFT');
+                webRTC.sendLeft();
+            });
+
+            bottomButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('send BOTTOM');
+                webRTC.sendBottom();
+            });
+
+            stopButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('send STOP');
+                webRTC.sendStop();
+            });
+
+            presentationButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('send PRESENTATION');
+                webRTC.sendPresentation();
+            });
+
+            merciButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('send MERCI');
+                webRTC.sendMerci();
+            });
+
+            r2d2Button.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('send R2D2');
+                webRTC.sendR2D2();
+            });
+
+            pardonButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('send PARDON');
+                webRTC.sendPardon();
+            });
+
             function KeyPress(e) {
                 var code = (e.keyCode ? e.keyCode : e.which);
                 if (code == 13) { // appuie sur la touche entrer
@@ -153,10 +266,6 @@ and open the template in the editor.
                 }
             }
             document.onkeypress = KeyPress;
-
         </script>
-
     </body>
-
-
 </html>
